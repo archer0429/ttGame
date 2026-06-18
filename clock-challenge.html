@@ -155,32 +155,39 @@
             overflow: hidden;
         }
 
-        /* 时钟数字 */
+        /* 时钟数字 — 统一用 transform 定位（先放中心，再旋转+平移） */
         .clock-number {
             position: absolute;
+            left: 50%;
+            top: 50%;
+            width: 30px;
+            height: 30px;
             font-size: 24px;
             font-weight: bold;
             color: var(--clock-number);
-            width: 30px;
-            height: 30px;
             display: flex;
             align-items: center;
             justify-content: center;
-            transform: translate(-50%, -50%);
+            /* transform 由 JS 设置 */
         }
 
-        /* 时钟刻度 */
+        /* 时钟刻度 — 相同定位方式 */
         .clock-tick {
             position: absolute;
-            width: 2px;
-            height: 8px;
+            left: 50%;
+            top: 50%;
             background: var(--clock-tick);
-            transform-origin: center bottom;
+            /* transform 由 JS 设置 */
         }
 
         .clock-tick.long {
-            height: 15px;
             width: 3px;
+            height: 15px;
+        }
+
+        .clock-tick.short {
+            width: 2px;
+            height: 8px;
         }
 
         /* 指针容器 */
@@ -690,65 +697,38 @@
             return questions;
         }
 
-        // 初始化时钟
+        // 初始化时钟（统一角度基准：12点方向 = 0°，顺时针为正
         function initClock() {
             const clockFace = document.getElementById('clockFace');
-            
-            // 生成数字
+            const clockRadius = clockFace.clientWidth / 2;  // 稳定读取时钟半径
+            const numberRadius = clockRadius - 28;         // 数字距中心距离（外圈 -28
+            const tickOuter = clockRadius - 5;              // 刻度外端距中心
+            const tickInnerShort = tickOuter - 10;               // 小刻度内端距中心
+            const tickInnerLong = tickOuter - 18;             // 大刻度内端距中心
+
+            // 生成数字（1-12）
+            // 变换链：中心对齐 → 旋转到正确角度 → 向外平移 → 反向旋转让文字保持正立
             for (let i = 1; i <= 12; i++) {
                 const number = document.createElement('div');
                 number.className = 'clock-number';
                 number.textContent = i;
-                
-                const angle = (i - 3) * 30;
-                // 动态计算半径（根据时钟容器大小）
-                const clockSize = clockFace.getBoundingClientRect();
-                const radius = clockSize.width / 2 - 28;  // 内边距
-                const x = Math.cos(angle * Math.PI / 180) * radius;
-                const y = Math.sin(angle * Math.PI / 180) * radius;
-                
-                // 使用百分比 + 偏移，transform 做真正的中心对齐
-                number.style.left = `calc(50% + ${x}px)`;
-                number.style.top = `calc(50% + ${y}px)`;
-                
+                const angle = (i % 12) * 30;  // 0°=12点, 30°=1点, 60°=2点...
+                number.style.transform =
+                    `translate(-50%, -50%) rotate(${angle}deg) translate(0, -${numberRadius}px) rotate(-${angle}deg)`;
                 clockFace.appendChild(number);
             }
-            
-            // 生成刻度
+
+            // 生成刻度（60个）
+            // 变换链：中心对齐 → 旋转 → 向外平移
             for (let i = 0; i < 60; i++) {
+                const isLong = i % 5 === 0;
                 const tick = document.createElement('div');
-                tick.className = `clock-tick ${i % 5 === 0 ? 'long' : ''}`;
-                
-                // 动态计算刻度位置（和数字一样的定位方式）
-                const angle = i * 6;
-                const clockSize = clockFace.getBoundingClientRect();
-                const outerRadius = clockSize.width / 2 - 5;   // 外圈半径
-                const innerRadius = i % 5 === 0 ? outerRadius - 18 : outerRadius - 10;
-                
-                // 刻度长度
-                const tickLength = i % 5 === 0 ? 15 : 8;
-                const tickWidth = i % 5 === 0 ? 3 : 2;
-                
-                // 刻度外端位置（从中心到外圈）
-                const outerX = Math.cos((angle - 90) * Math.PI / 180) * outerRadius;
-                const outerY = Math.sin((angle - 90) * Math.PI / 180) * outerRadius;
-                
-                // 刻度内端位置（从中心到内圈）
-                const innerX = Math.cos((angle - 90) * Math.PI / 180) * innerRadius;
-                const innerY = Math.sin((angle - 90) * Math.PI / 180) * innerRadius;
-                
-                // 计算刻度中心点和旋转角度
-                const centerX = (outerX + innerX) / 2;
-                const centerY = (outerY + innerY) / 2;
-                const length = outerRadius - innerRadius;
-                
-                tick.style.width = `${tickWidth}px`;
-                tick.style.height = `${length}px`;
-                tick.style.left = `calc(50% + ${centerX}px)`;
-                tick.style.top = `calc(50% + ${centerY}px)`;
-                tick.style.transformOrigin = `center top`;
-                tick.style.transform = `translate(-50%, 0) rotate(${angle}deg)`;
-                
+                tick.className = `clock-tick ${isLong ? 'long' : 'short'}`;
+                const angle = i * 6;  // 0°=12点位置
+                const tickHeight = isLong ? 15 : 8;
+                const tickDist = tickOuter - tickHeight / 2;  // 刻度中心距中心
+                tick.style.transform =
+                    `translate(-50%, -50%) rotate(${angle}deg) translate(0, -${tickDist}px)`;
                 clockFace.appendChild(tick);
             }
         }
