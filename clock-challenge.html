@@ -175,9 +175,7 @@
             width: 2px;
             height: 8px;
             background: var(--clock-tick);
-            left: 50%;
-            top: 10px;
-            transform-origin: center 130px;
+            transform-origin: center bottom;
         }
 
         .clock-tick.long {
@@ -720,7 +718,37 @@
             for (let i = 0; i < 60; i++) {
                 const tick = document.createElement('div');
                 tick.className = `clock-tick ${i % 5 === 0 ? 'long' : ''}`;
-                tick.style.transform = `rotate(${i * 6}deg)`;
+                
+                // 动态计算刻度位置（和数字一样的定位方式）
+                const angle = i * 6;
+                const clockSize = clockFace.getBoundingClientRect();
+                const outerRadius = clockSize.width / 2 - 5;   // 外圈半径
+                const innerRadius = i % 5 === 0 ? outerRadius - 18 : outerRadius - 10;
+                
+                // 刻度长度
+                const tickLength = i % 5 === 0 ? 15 : 8;
+                const tickWidth = i % 5 === 0 ? 3 : 2;
+                
+                // 刻度外端位置（从中心到外圈）
+                const outerX = Math.cos((angle - 90) * Math.PI / 180) * outerRadius;
+                const outerY = Math.sin((angle - 90) * Math.PI / 180) * outerRadius;
+                
+                // 刻度内端位置（从中心到内圈）
+                const innerX = Math.cos((angle - 90) * Math.PI / 180) * innerRadius;
+                const innerY = Math.sin((angle - 90) * Math.PI / 180) * innerRadius;
+                
+                // 计算刻度中心点和旋转角度
+                const centerX = (outerX + innerX) / 2;
+                const centerY = (outerY + innerY) / 2;
+                const length = outerRadius - innerRadius;
+                
+                tick.style.width = `${tickWidth}px`;
+                tick.style.height = `${length}px`;
+                tick.style.left = `calc(50% + ${centerX}px)`;
+                tick.style.top = `calc(50% + ${centerY}px)`;
+                tick.style.transformOrigin = `center top`;
+                tick.style.transform = `translate(-50%, 0) rotate(${angle}deg)`;
+                
                 clockFace.appendChild(tick);
             }
         }
