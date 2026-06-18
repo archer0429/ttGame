@@ -1036,15 +1036,15 @@
                 // 更新上一帧角度
                 lastAngle = currentAngle;
                 
-                // 直接设置当前指针角度（基于初始位置的变化）
-                const baseAngle = getBaseAngle(handId);
-                let newAngle = baseAngle;
-                if (lastAngle !== null) {
-                    // 计算相对于初始位置的新角度
-                    newAngle = normalizeAngle(baseAngle + calculateTotalDelta(handId));
-                }
-                
-                updateHandRotation(handId, newAngle);
+                // 同步刷新所有指针的显示（确保联动后的指针也更新）
+                updateAllHands();
+            }
+            
+            // 同步刷新所有指针显示
+            function updateAllHands() {
+                updateHandRotation('hourHand', normalizeAngle(handBaseAngles.hourHand + handDelta.hourHand));
+                updateHandRotation('minuteHand', normalizeAngle(handBaseAngles.minuteHand + handDelta.minuteHand));
+                updateHandRotation('secondHand', normalizeAngle(handBaseAngles.secondHand + handDelta.secondHand));
             }
             
             function stopDrag() {
@@ -1084,34 +1084,44 @@
             return handDelta[handId] || 0;
         }
 
-        // 应用联动规则
+        // 应用联动规则（真实时钟联动）
         function applyLinkage(draggedHand, delta) {
             // 更新被拖动指针的累计变化
             handDelta[draggedHand] = (handDelta[draggedHand] || 0) + delta;
             
-            // 联动规则：
-            // 1. 拖动时针 → 联动分针（5:1）
-            // 2. 拖动分针 → 联动时针（1:2）+ 秒针（1:60）
-            // 3. 拖动秒针 → 联动分针（60:1）
+            // 真实时钟联动规则：
+            // 1. 时针转30°（1小时），分针必须转360°（60分钟）→ 比例 1:12
+            // 2. 分针转360°（60分钟），时针转30°（1小时）→ 比例 12:1
+            // 3. 分针转6°（1分钟），秒针转360°（60秒）→ 比例 1:60
+            // 4. 秒针转360°（60秒），分针转6°（1分钟）→ 比例 60:1
             
             if (draggedHand === 'hourHand') {
-                // 时针 → 分针（5:1）
-                handDelta.minuteHand = (handDelta.minuteHand || 0) + delta / 5;
+                // 时针 → 分针（1:12）
+                // 时针转1°，分针转12°
+                handDelta.minuteHand = (handDelta.minuteHand || 0) + delta * 12;
                 updateHandRotation('minuteHand', normalizeAngle(handBaseAngles.minuteHand + handDelta.minuteHand));
                 
             } else if (draggedHand === 'minuteHand') {
-                // 分针 → 时针（1:2）
-                handDelta.hourHand = (handDelta.hourHand || 0) + delta / 2;
+                // 分针 → 时针（12:1）
+                // 分针转12°，时针转1°
+                handDelta.hourHand = (handDelta.hourHand || 0) + delta / 12;
                 updateHandRotation('hourHand', normalizeAngle(handBaseAngles.hourHand + handDelta.hourHand));
                 
                 // 分针 → 秒针（1:60）
+                // 分针转1°，秒针转60°
                 handDelta.secondHand = (handDelta.secondHand || 0) + delta * 60;
                 updateHandRotation('secondHand', normalizeAngle(handBaseAngles.secondHand + handDelta.secondHand));
                 
             } else if (draggedHand === 'secondHand') {
                 // 秒针 → 分针（60:1）
+                // 秒针转60°，分针转1°
                 handDelta.minuteHand = (handDelta.minuteHand || 0) + delta / 60;
                 updateHandRotation('minuteHand', normalizeAngle(handBaseAngles.minuteHand + handDelta.minuteHand));
+                
+                // 秒针 → 时针（720:1）
+                // 秒针转720°，时针转1°
+                handDelta.hourHand = (handDelta.hourHand || 0) + delta / 720;
+                updateHandRotation('hourHand', normalizeAngle(handBaseAngles.hourHand + handDelta.hourHand));
             }
         }
 
@@ -1121,9 +1131,14 @@
             const minuteAngle = normalizeAngle(handBaseAngles.minuteHand + handDelta.minuteHand);
             const secondAngle = normalizeAngle(handBaseAngles.secondHand + handDelta.secondHand);
             
-            gameState.currentTime.hour = Math.round(hourAngle / 30) || 12;
-            gameState.currentTime.minute = Math.round(minuteAngle / 6);
-            gameState.currentTime.second = Math.round(secondAngle / 6);
+            // 计算真实时间（考虑联动关系）
+            // 小时：时针角度 / 30，但要考虑分针的影响
+            const totalMinutes = minuteAngle / 6;  // 总分钟数（可能超过60）
+            const totalHours = hourAngle / 30;      // 总小时数（可能超过12）
+            
+            gameState.currentTime.hour = Math.floor(totalHours) % 12 || 12;
+            gameState.currentTime.minute = Math.floor(totalMinutes) % 60;
+            gameState.currentTime.second = Math.floor(secondAngle / 6) % 60;
         }
 
         // 设置时钟指针位置（初始化）
