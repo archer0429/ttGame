@@ -214,6 +214,18 @@
             box-shadow: 0 2px 4px rgba(0,0,0,0.2);
         }
 
+        /* 时针的大触碰区（透明，用于扩大触摸命中） */
+        .hour-hand::before {
+            content: '';
+            position: absolute;
+            width: 40px;
+            height: 60px;
+            left: -17px;
+            top: 0;
+            background: transparent;
+            cursor: grab;
+        }
+
         /* 分针 */
         .minute-hand {
             position: absolute;
@@ -229,6 +241,18 @@
             box-shadow: 0 2px 4px rgba(0,0,0,0.2);
         }
 
+        /* 分针的大触碰区 */
+        .minute-hand::before {
+            content: '';
+            position: absolute;
+            width: 40px;
+            height: 90px;
+            left: -18px;
+            top: 0;
+            background: transparent;
+            cursor: grab;
+        }
+
         /* 秒针 */
         .second-hand {
             position: absolute;
@@ -241,6 +265,18 @@
             transform-origin: bottom center;
             cursor: grab;
             z-index: 5;
+        }
+
+        /* 秒针的大触碰区 */
+        .second-hand::before {
+            content: '';
+            position: absolute;
+            width: 40px;
+            height: 100px;
+            left: -19px;
+            top: 0;
+            background: transparent;
+            cursor: grab;
         }
 
         /* 中心圆点 */
@@ -548,16 +584,34 @@
                 left: -2.5px;
             }
 
+            .hour-hand::before {
+                width: 40px;
+                height: 50px;
+                left: -17.5px;
+            }
+
             .minute-hand {
                 width: 3px;
                 height: 75px;
                 left: -1.5px;
             }
 
+            .minute-hand::before {
+                width: 40px;
+                height: 75px;
+                left: -18.5px;
+            }
+
             .second-hand {
                 width: 2px;
                 height: 85px;
                 left: -1px;
+            }
+
+            .second-hand::before {
+                width: 40px;
+                height: 85px;
+                left: -19px;
             }
 
             .target-value {
@@ -624,17 +678,17 @@
     <!-- 输入区域（填一填模式） -->
     <div class="input-area hidden" id="inputArea">
         <div class="time-input-box">
-            <input type="text" class="time-input" id="hourInput" maxlength="2" placeholder="0">
+            <input type="text" class="time-input" id="hourInput" maxlength="2" placeholder="0" readonly>
             <div class="time-label">时</div>
         </div>
         <div class="colon">:</div>
         <div class="time-input-box">
-            <input type="text" class="time-input" id="minuteInput" maxlength="2" placeholder="0">
+            <input type="text" class="time-input" id="minuteInput" maxlength="2" placeholder="0" readonly>
             <div class="time-label">分</div>
         </div>
         <div class="colon">:</div>
         <div class="time-input-box">
-            <input type="text" class="time-input" id="secondInput" maxlength="2" placeholder="0">
+            <input type="text" class="time-input" id="secondInput" maxlength="2" placeholder="0" readonly>
             <div class="time-label">秒</div>
         </div>
     </div>
