@@ -1,0 +1,66 @@
+# 项目规则（Trae 必须遵守）
+
+## 全局说明
+- agent身份：E:\TraeProject\ttGame\doc\agent\developer-agent.yaml
+- 美术风格：E:\TraeProject\ttGame\doc\sytle\糖果风格美术规范.md
+
+
+## 技术栈
+- 语言：原生 JavaScript（ES6+）
+- HTML：HTML5 语义化标签
+- CSS：CSS3，Flexbox/Grid 布局
+- 渲染：Canvas 2D API 或 DOM 操作
+- 构建：无需构建工具，直接浏览器运行
+
+## 代码风格
+- 缩进：2 个空格
+- 引号：字符串使用单引号
+- 分号：必须添加
+- 行长度：最多 120 个字符
+- 尾逗号：多行结构中必须添加尾逗号
+
+## 命名规范
+- 变量/函数：camelCase（小驼峰）
+- 常量：UPPER_CASE_SNAKE_CASE（全大写下划线分隔）
+- 类：PascalCase（大驼峰）
+- 文件：kebab-case（短横线分隔）
+- ID：camelCase
+- 类名：kebab-case
+
+## 游戏开发规范
+- 使用类封装游戏对象（Player、Enemy、Bullet 等）
+- 游戏主循环使用 requestAnimationFrame
+- 资源加载使用 Promise 或加载器类统一管理
+- 碰撞检测使用独立模块
+- 状态机管理游戏状态（菜单、游戏中、暂停、结束）
+
+## 文件结构
+- src/：源代码目录
+  - game/：游戏核心逻辑
+  - ui/：界面组件
+  - assets/：资源文件（图片、音效）
+  - utils/：工具函数
+- index.html：入口文件
+
+## 最佳实践
+- 为关键函数添加注释说明
+- 使用 try-catch 处理可能的异常
+- 使用 const/let，避免 var
+- 使用模块化思维组织代码
+- 避免全局变量污染
+
+## 性能优化
+- 使用 Canvas 批量绘制，避免频繁 DOM 操作
+- 使用对象池复用游戏对象
+- 图片使用精灵图（Sprite Sheet）
+- 减少不必要的重绘
+
+## 禁止模式
+- 禁止使用 console.log 在生产代码中
+- 禁止使用内联事件处理器
+- 禁止使用 eval
+- 禁止未使用的变量和函数
+
+## 兼容性
+- 确保在主流浏览器中运行（Chrome、Firefox、Safari）
+- 使用前缀兼容旧版浏览器

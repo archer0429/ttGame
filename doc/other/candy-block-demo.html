@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Candy Crush 风格方块 Demo</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            min-height: 100vh;
+            background: linear-gradient(180deg, #4A1A6B 0%, #2D1145 100%);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            font-family: 'Arial', sans-serif;
+            padding: 20px;
+        }
+
+        h1 {
+            color: #fff;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+            margin-bottom: 40px;
+            font-size: 24px;
+        }
+
+        /* 方块容器 */
+        .blocks-container {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 30px;
+            max-width: 600px;
+        }
+
+        /* Candy Crush 风格方块 */
+        .candy-block {
+            width: 100px;
+            height: 100px;
+            border-radius: 24px;
+            position: relative;
+            cursor: pointer;
+            transition: transform 0.1s ease;
+            /* 3D 厚度效果 */
+            box-shadow: 
+                0 8px 0 rgba(0,0,0,0.2),
+                0 12px 20px rgba(0,0,0,0.3);
+        }
+
+        .candy-block:active {
+            transform: translateY(4px);
+            box-shadow: 
+                0 4px 0 rgba(0,0,0,0.2),
+                0 6px 12px rgba(0,0,0,0.3);
+        }
+
+        /* 方块表面 - 渐变 */
+        .candy-block::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            border-radius: 24px;
+            /* 135° 渐变 */
+            background: linear-gradient(135deg, var(--light-color) 0%, var(--main-color) 50%, var(--dark-color) 100%);
+        }
+
+        /* 高光效果 */
+        .candy-block::after {
+            content: '';
+            position: absolute;
+            top: 6px;
+            left: 6px;
+            right: 20px;
+            height: 30px;
+            border-radius: 20px 20px 10px 10px;
+            background: linear-gradient(180deg, 
+                rgba(255,255,255,0.7) 0%, 
+                rgba(255,255,255,0.3) 50%,
+                rgba(255,255,255,0) 100%);
+            pointer-events: none;
+        }
+
+        /* 额外高光点 */
+        .candy-block .highlight {
+            position: absolute;
+            top: 12px;
+            left: 12px;
+            width: 16px;
+            height: 12px;
+            background: rgba(255,255,255,0.9);
+            border-radius: 50%;
+            filter: blur(2px);
+            pointer-events: none;
+        }
+
+        /* 六种糖果色 */
+        .candy-block.red {
+            --light-color: #FF6B7A;
+            --main-color: #E8364F;
+            --dark-color: #C0392B;
+        }
+
+        .candy-block.orange {
+            --light-color: #F8B739;
+            --main-color: #F39C12;
+            --dark-color: #D35400;
+        }
+
+        .candy-block.yellow {
+            --light-color: #F9E79F;
+            --main-color: #F1C40F;
+            --dark-color: #D4AC0D;
+        }
+
+        .candy-block.green {
+            --light-color: #58D68D;
+            --main-color: #2ECC71;
+            --dark-color: #27AE60;
+        }
+
+        .candy-block.blue {
+            --light-color: #5DADE2;
+            --main-color: #3498DB;
+            --dark-color: #2980B9;
+        }
+
+        .candy-block.purple {
+            --light-color: #AF7AC5;
+            --main-color: #9B59B6;
+            --dark-color: #8E44AD;
+        }
+
+        /* 动画效果 */
+        @keyframes bounce {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+        }
+
+        .candy-block:hover {
+            animation: bounce 0.3s ease;
+        }
+
+        /* 消除动画 */
+        @keyframes pop {
+            0% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(1.3); opacity: 0.8; }
+            100% { transform: scale(0); opacity: 0; }
+        }
+
+        .candy-block.popping {
+            animation: pop 0.3s ease forwards;
+        }
+
+        /* 说明文字 */
+        .description {
+            color: #D7BDE2;
+            text-align: center;
+            margin-top: 40px;
+            font-size: 14px;
+            line-height: 1.8;
+        }
+
+        .description code {
+            background: rgba(255,255,255,0.1);
+            padding: 2px 6px;
+            border-radius: 4px;
+            color: #F1C40F;
+        }
+
+        /* 粒子效果容器 */
+        .particles {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            overflow: hidden;
+        }
+
+        .particle {
+            position: absolute;
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            pointer-events: none;
+        }
+
+        @keyframes particle-fly {
+            0% {
+                transform: translate(0, 0) scale(1);
+                opacity: 1;
+            }
+            100% {
+                transform: translate(var(--tx), var(--ty)) scale(0);
+                opacity: 0;
+            }
+        }
+    </style>
+</head>
+<body>
+    <h1>🍬 Candy Crush 风格方块 Demo</h1>
+    
+    <div class="blocks-container">
+        <div class="candy-block red" data-color="red">
+            <div class="highlight"></div>
+        </div>
+        <div class="candy-block orange" data-color="orange">
+            <div class="highlight"></div>
+        </div>
+        <div class="candy-block yellow" data-color="yellow">
+            <div class="highlight"></div>
+        </div>
+        <div class="candy-block green" data-color="green">
+            <div class="highlight"></div>
+        </div>
+        <div class="candy-block blue" data-color="blue">
+            <div class="highlight"></div>
+        </div>
+        <div class="candy-block purple" data-color="purple">
+            <div class="highlight"></div>
+        </div>
+    </div>
+
+    <div class="description">
+        <p>点击方块查看消除效果</p>
+        <p>技术要点：<code>135°渐变</code> + <code>顶部高光</code> + <code>底部阴影</code> + <code>圆角24px</code></p>
+    </div>
+
+    <div class="particles" id="particles"></div>
+
+    <script>
+        // 获取所有方块
+        const blocks = document.querySelectorAll('.candy-block');
+        const particlesContainer = document.getElementById('particles');
+
+        // 颜色映射
+        const colorMap = {
+            red: '#E8364F',
+            orange: '#F39C12',
+            yellow: '#F1C40F',
+            green: '#2ECC71',
+            blue: '#3498DB',
+            purple: '#9B59B6'
+        };
+
+        // 点击方块效果
+        blocks.forEach(block => {
+            block.addEventListener('click', function(e) {
+                const rect = this.getBoundingClientRect();
+                const centerX = rect.left + rect.width / 2;
+                const centerY = rect.top + rect.height / 2;
+                const color = colorMap[this.dataset.color];
+
+                // 添加消除动画
+                this.classList.add('popping');
+
+                // 创建粒子效果
+                createParticles(centerX, centerY, color);
+
+                // 动画结束后重置
+                setTimeout(() => {
+                    this.classList.remove('popping');
+                }, 300);
+            });
+        });
+
+        // 创建粒子效果
+        function createParticles(x, y, color) {
+            const particleCount = 8;
+            
+            for (let i = 0; i < particleCount; i++) {
+                const particle = document.createElement('div');
+                particle.className = 'particle';
+                particle.style.backgroundColor = color;
+                particle.style.left = x + 'px';
+                particle.style.top = y + 'px';
+                
+                // 随机方向
+                const angle = (Math.PI * 2 * i) / particleCount;
+                const distance = 60 + Math.random() * 40;
+                const tx = Math.cos(angle) * distance;
+                const ty = Math.sin(angle) * distance;
+                
+                particle.style.setProperty('--tx', tx + 'px');
+                particle.style.setProperty('--ty', ty + 'px');
+                particle.style.animation = 'particle-fly 0.5s ease forwards';
+                
+                particlesContainer.appendChild(particle);
+                
+                // 清理粒子
+                setTimeout(() => {
+                    particle.remove();
+                }, 500);
+            }
+        }
+    </script>
+</body>
+</html>

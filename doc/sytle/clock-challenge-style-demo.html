@@ -1,0 +1,1056 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>时钟挑战 - 糖果风格 Demo</title>
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            /* 彩虹糖果色板（柔和版） */
+            --candy-red: #FF8E8E;
+            --candy-red-light: #FFB5B5;
+            --candy-red-dark: #E57373;
+            
+            --candy-orange: #FFBE76;
+            --candy-orange-light: #FFD9A8;
+            --candy-orange-dark: #E0A050;
+            
+            --candy-yellow: #FFE066;
+            --candy-yellow-light: #FFF3BF;
+            --candy-yellow-dark: #D4B800;
+            
+            --candy-green: #8CE99A;
+            --candy-green-light: #B5EDC1;
+            --candy-green-dark: #5BAA6E;
+            
+            --candy-blue: #A5D8FF;
+            --candy-blue-light: #C9E5FC;
+            --candy-blue-dark: #5B95C7;
+            
+            --candy-purple: #D0BFFF;
+            --candy-purple-light: #E0D2F7;
+            --candy-purple-dark: #8E7AB5;
+            
+            --candy-pink: #FFCAD4;
+            --candy-pink-light: #FFE0E5;
+            --candy-pink-dark: #D678A0;
+            
+            /* 背景色（更柔和） */
+            --bg-light: #FAFBFC;
+            --bg-pink: #F5F7FA;
+            --bg-gradient: linear-gradient(135deg, #FAF8FC 0%, #F0F4F8 50%, #F5F0F8 100%);
+        }
+
+        body {
+            min-height: 100vh;
+            background: var(--bg-gradient);
+            font-family: 'Nunito', 'Comic Sans MS', cursive, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+            overflow-x: hidden;
+        }
+
+        /* 装饰性背景元素 */
+        .bg-decorations {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            overflow: hidden;
+            z-index: 0;
+        }
+
+        .bg-circle {
+            position: absolute;
+            border-radius: 50%;
+            opacity: 0.12;
+            animation: float 12s ease-in-out infinite;
+        }
+
+        .bg-circle:nth-child(1) {
+            width: 200px;
+            height: 200px;
+            background: var(--candy-pink-light);
+            top: 10%;
+            left: -50px;
+            animation-delay: 0s;
+        }
+
+        .bg-circle:nth-child(2) {
+            width: 150px;
+            height: 150px;
+            background: var(--candy-blue-light);
+            top: 60%;
+            right: -30px;
+            animation-delay: 3s;
+        }
+
+        .bg-circle:nth-child(3) {
+            width: 100px;
+            height: 100px;
+            background: var(--candy-yellow-light);
+            bottom: 20%;
+            left: 10%;
+            animation-delay: 6s;
+        }
+
+        .bg-circle:nth-child(4) {
+            width: 80px;
+            height: 80px;
+            background: var(--candy-green-light);
+            top: 30%;
+            right: 20%;
+            animation-delay: 9s;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0) rotate(0deg); }
+            50% { transform: translateY(-15px) rotate(5deg); }
+        }
+
+        h1 {
+            background: linear-gradient(135deg, var(--candy-red), var(--candy-orange), var(--candy-yellow), var(--candy-green), var(--candy-blue), var(--candy-purple));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            font-size: 40px;
+            font-weight: 900;
+            margin-bottom: 20px;
+            position: relative;
+            z-index: 1;
+        }
+
+        /* ========== 游戏容器 ========== */
+        .game-container {
+            width: 100%;
+            max-width: 420px;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 40px;
+            padding: 20px;
+            box-shadow: 
+                0 20px 60px rgba(155, 89, 182, 0.2),
+                0 10px 30px rgba(0, 0, 0, 0.1),
+                inset 0 2px 0 rgba(255, 255, 255, 1);
+            position: relative;
+            z-index: 1;
+            backdrop-filter: blur(10px);
+        }
+
+        /* 彩虹边框效果 */
+        .game-container::before {
+            content: '';
+            position: absolute;
+            top: -3px;
+            left: -3px;
+            right: -3px;
+            bottom: -3px;
+            background: linear-gradient(45deg, 
+                var(--candy-red), 
+                var(--candy-orange), 
+                var(--candy-yellow), 
+                var(--candy-green), 
+                var(--candy-blue), 
+                var(--candy-purple),
+                var(--candy-pink)
+            );
+            border-radius: 43px;
+            z-index: -1;
+            background-size: 400% 400%;
+        }
+
+        /* ========== 顶部功能栏 ========== */
+        .top-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            padding: 8px;
+            background: linear-gradient(135deg, var(--bg-pink), var(--bg-light));
+            border-radius: 25px;
+        }
+
+        .mode-switch {
+            display: flex;
+            gap: 4px;
+        }
+
+        .mode-btn {
+            padding: 12px 22px;
+            border-radius: 22px;
+            border: none;
+            font-size: 18px;
+            font-weight: 800;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            font-family: inherit;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .mode-btn.active {
+            background: linear-gradient(135deg, var(--candy-purple), var(--candy-pink));
+            color: white;
+            transform: scale(1.05);
+            box-shadow: 0 6px 20px rgba(155, 89, 182, 0.4);
+        }
+
+        .mode-btn:not(.active) {
+            background: white;
+            color: var(--candy-purple-dark);
+            box-shadow: 0 3px 10px rgba(0,0,0,0.1);
+        }
+
+        .mode-btn:not(.active):hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.15);
+        }
+
+        .mode-btn:active {
+            transform: scale(0.95);
+        }
+
+        .progress {
+            font-size: 22px;
+            font-weight: 900;
+            background: linear-gradient(135deg, var(--candy-blue), var(--candy-purple));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .action-btns {
+            display: flex;
+            gap: 6px;
+        }
+
+        .action-btn {
+            padding: 12px 18px;
+            border-radius: 20px;
+            border: none;
+            font-size: 18px;
+            font-weight: 800;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            font-family: inherit;
+        }
+
+        .action-btn.answer {
+            background: linear-gradient(135deg, var(--candy-yellow), var(--candy-orange));
+            color: white;
+            box-shadow: 0 4px 15px rgba(243, 156, 18, 0.4);
+        }
+
+        .action-btn.next {
+            background: linear-gradient(135deg, var(--candy-green-light), var(--candy-green));
+            color: white;
+            box-shadow: 0 4px 15px rgba(39, 174, 96, 0.4);
+        }
+
+        .action-btn:hover {
+            transform: translateY(-3px) scale(1.05);
+        }
+
+        .action-btn:active {
+            transform: translateY(0) scale(0.95);
+        }
+
+        /* ========== 目标时间显示 ========== */
+        .target-time {
+            text-align: center;
+            margin: 15px 0;
+        }
+
+        .target-label {
+            font-size: 18px;
+            color: var(--candy-purple-dark);
+            margin-bottom: 5px;
+            font-weight: 700;
+        }
+
+        .target-value {
+            font-size: 56px;
+            font-weight: 900;
+            background: linear-gradient(135deg, var(--candy-purple), var(--candy-pink));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            text-shadow: none;
+        }
+
+        /* ========== 时钟画布 ========== */
+        .clock-wrapper {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin: 15px 0;
+            position: relative;
+        }
+
+        #clockCanvas {
+            border-radius: 50%;
+            box-shadow: 
+                0 10px 0 rgba(155, 89, 182, 0.2),
+                0 15px 30px rgba(155, 89, 182, 0.2),
+                0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        /* 时钟装饰 -->
+        .clock-wrapper::before {
+            content: '';
+            position: absolute;
+            width: 320px;
+            height: 320px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--candy-pink-light), var(--candy-purple-light));
+            z-index: -1;
+            animation: clock-glow 3s ease-in-out infinite;
+        }
+
+        @keyframes clock-glow {
+            0%, 100% { transform: scale(1); opacity: 0.3; }
+            50% { transform: scale(1.05); opacity: 0.5; }
+        }
+
+        /* ========== 填空区域 ========== */
+        .fill-area {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 8px;
+            margin: 20px 0;
+            padding: 15px;
+            background: linear-gradient(135deg, var(--bg-pink), var(--bg-light));
+            border-radius: 25px;
+        }
+
+        .input-group {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .time-input {
+            width: 90px;
+            height: 90px;
+            border: none;
+            border-bottom: 5px solid var(--candy-purple-light);
+            background: rgba(255, 255, 255, 0.9);
+            font-size: 52px;
+            font-weight: 900;
+            text-align: center;
+            color: var(--candy-purple-dark);
+            outline: none;
+            transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            border-radius: 15px 15px 0 0;
+            font-family: inherit;
+        }
+
+        .time-input::placeholder {
+            color: var(--candy-purple-light);
+        }
+
+        .time-input:focus {
+            border-bottom-color: var(--candy-blue);
+            background: rgba(116, 192, 252, 0.2);
+            transform: scale(1.1);
+        }
+
+        .time-input.correct {
+            border-bottom-color: var(--candy-green);
+            background: linear-gradient(135deg, var(--candy-green-light), rgba(105, 219, 124, 0.3));
+            animation: success-pop 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        @keyframes success-pop {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.2); }
+            100% { transform: scale(1.1); }
+        }
+
+        .time-input.wrong {
+            border-bottom-color: var(--candy-red);
+            background: linear-gradient(135deg, var(--candy-red-light), rgba(255, 107, 107, 0.3));
+            animation: shake 0.5s ease;
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-8px); }
+            75% { transform: translateX(8px); }
+        }
+
+        .time-label {
+            font-size: 20px;
+            color: var(--candy-purple-dark);
+            margin-top: 8px;
+            font-weight: 800;
+        }
+
+        .colon {
+            font-size: 56px;
+            font-weight: 900;
+            color: var(--candy-purple);
+            margin-bottom: 20px;
+        }
+
+        /* ========== 数字键盘 ========== */
+        .numpad {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+            max-width: 320px;
+            margin: 0 auto;
+            padding: 15px;
+        }
+
+        .num-btn {
+            width: 100px;
+            height: 75px;
+            border-radius: 22px;
+            border: none;
+            font-size: 36px;
+            font-weight: 900;
+            cursor: pointer;
+            font-family: inherit;
+            transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* 彩虹色数字按钮 */
+        .num-btn:nth-child(1), .num-btn:nth-child(5), .num-btn:nth-child(9) {
+            background: linear-gradient(135deg, var(--candy-red), var(--candy-red-dark));
+            box-shadow: 0 6px 0 var(--candy-red-dark), 0 8px 15px rgba(231, 76, 60, 0.3);
+            color: white;
+        }
+        
+        .num-btn:nth-child(2), .num-btn:nth-child(6) {
+            background: linear-gradient(135deg, var(--candy-orange), var(--candy-orange-dark));
+            box-shadow: 0 6px 0 var(--candy-orange-dark), 0 8px 15px rgba(243, 156, 18, 0.3);
+            color: white;
+        }
+        
+        .num-btn:nth-child(3), .num-btn:nth-child(7) {
+            background: linear-gradient(135deg, var(--candy-yellow), var(--candy-yellow-dark));
+            box-shadow: 0 6px 0 var(--candy-yellow-dark), 0 8px 15px rgba(241, 196, 15, 0.3);
+            color: white;
+        }
+        
+        .num-btn:nth-child(4) {
+            background: linear-gradient(135deg, var(--candy-green-light), var(--candy-green));
+            box-shadow: 0 6px 0 var(--candy-green-dark), 0 8px 15px rgba(39, 174, 96, 0.3);
+            color: white;
+        }
+        
+        .num-btn:nth-child(8) {
+            background: linear-gradient(135deg, var(--candy-blue), var(--candy-blue-dark));
+            box-shadow: 0 6px 0 var(--candy-blue-dark), 0 8px 15px rgba(52, 152, 219, 0.3);
+            color: white;
+        }
+        
+        .num-btn:nth-child(10) {
+            background: linear-gradient(135deg, var(--candy-purple), var(--candy-purple-dark));
+            box-shadow: 0 6px 0 var(--candy-purple-dark), 0 8px 15px rgba(155, 89, 182, 0.3);
+            color: white;
+        }
+
+        .num-btn:hover {
+            transform: translateY(-3px) scale(1.05);
+        }
+
+        .num-btn:active {
+            transform: translateY(4px);
+            box-shadow: 0 2px 0 var(--candy-red-dark), 0 3px 8px rgba(0,0,0,0.2);
+        }
+
+        .num-btn.zero {
+            grid-column: 2;
+        }
+
+        /* ========== 底部说明区域 ========== */
+        .bottom-area {
+            margin-top: 20px;
+            padding: 18px;
+            background: linear-gradient(135deg, var(--bg-pink), var(--bg-light));
+            border-radius: 25px;
+            text-align: center;
+        }
+
+        .task-title {
+            font-size: 20px;
+            color: var(--candy-purple-dark);
+            margin-bottom: 10px;
+            font-weight: 800;
+        }
+
+        .task-content {
+            font-size: 17px;
+            color: #555;
+            line-height: 1.8;
+        }
+
+        .highlight-red {
+            color: var(--candy-red);
+            font-weight: 800;
+        }
+
+        .highlight-blue {
+            color: var(--candy-blue);
+            font-weight: 800;
+        }
+
+        .more-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 14px 36px;
+            margin-top: 15px;
+            border-radius: 28px;
+            border: none;
+            background: linear-gradient(135deg, var(--candy-pink), var(--candy-purple));
+            color: white;
+            font-size: 18px;
+            font-weight: 800;
+            cursor: pointer;
+            box-shadow: 0 6px 20px rgba(233, 113, 166, 0.4);
+            transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            font-family: inherit;
+        }
+
+        .more-btn:hover {
+            transform: translateY(-3px) scale(1.05);
+            box-shadow: 0 10px 30px rgba(233, 113, 166, 0.5);
+        }
+
+        .more-btn:active {
+            transform: translateY(0) scale(0.98);
+        }
+
+        /* ========== 粒子效果容器 ========== */
+        .particles {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            overflow: hidden;
+            z-index: 1000;
+        }
+
+        .particle {
+            position: absolute;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            pointer-events: none;
+        }
+
+        @keyframes particle-fly {
+            0% {
+                transform: translate(0, 0) scale(1) rotate(0deg);
+                opacity: 1;
+            }
+            100% {
+                transform: translate(var(--tx), var(--ty)) scale(0) rotate(360deg);
+                opacity: 0;
+            }
+        }
+
+        /* ========== 成功动画 ========== */
+        @keyframes success-bounce {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.02); }
+        }
+
+        .success {
+            animation: success-bounce 0.6s ease;
+        }
+
+        /* 星星效果 */
+        .star {
+            position: absolute;
+            font-size: 30px;
+            animation: star-fall 1s ease-out forwards;
+            pointer-events: none;
+        }
+
+        @keyframes star-fall {
+            0% {
+                transform: translateY(0) rotate(0deg) scale(0);
+                opacity: 1;
+            }
+            50% {
+                opacity: 1;
+            }
+            100% {
+                transform: translateY(100px) rotate(360deg) scale(1);
+                opacity: 0;
+            }
+        }
+
+        /* ========== 说明文字 ========== */
+        .description {
+            text-align: center;
+            margin-top: 25px;
+            padding: 15px 25px;
+            background: rgba(255, 255, 255, 0.8);
+            border-radius: 20px;
+            color: var(--candy-purple-dark);
+            font-size: 14px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .description code {
+            background: linear-gradient(135deg, var(--candy-yellow), var(--candy-orange));
+            padding: 3px 10px;
+            border-radius: 8px;
+            color: white;
+            font-weight: 700;
+        }
+
+        /* 响应式 */
+        @media (max-width: 400px) {
+            h1 { font-size: 32px; }
+            .num-btn { width: 85px; height: 65px; font-size: 30px; }
+            .time-input { width: 75px; height: 75px; font-size: 42px; }
+            .target-value { font-size: 44px; }
+        }
+    </style>
+</head>
+<body>
+    <!-- 背景装饰 -->
+    <div class="bg-decorations">
+        <div class="bg-circle"></div>
+        <div class="bg-circle"></div>
+        <div class="bg-circle"></div>
+        <div class="bg-circle"></div>
+    </div>
+
+    <h1>🎮 时钟挑战</h1>
+    
+    <div class="game-container" id="gameContainer">
+        <!-- 彩虹边框 -->
+        
+        <!-- 顶部功能栏 -->
+        <div class="top-bar">
+            <div class="mode-switch">
+                <button class="mode-btn" id="mode1Btn">🎯 拨一拨</button>
+                <button class="mode-btn active" id="mode2Btn">✏️ 填一填</button>
+            </div>
+            <div class="progress">1/5 ⭐</div>
+            <div class="action-btns">
+                <button class="action-btn answer">💡 答案</button>
+                <button class="action-btn next">🔄 换一换</button>
+            </div>
+        </div>
+
+        <!-- 目标时间 -->
+        <div class="target-time">
+            <div class="target-label">请填写当前时间</div>
+            <div class="target-value">7 : 30</div>
+        </div>
+
+        <!-- 时钟 -->
+        <div class="clock-wrapper">
+            <canvas id="clockCanvas" width="280" height="280"></canvas>
+        </div>
+
+        <!-- 填空区域 -->
+        <div class="fill-area">
+            <div class="input-group">
+                <input type="text" class="time-input" id="hourInput" maxlength="2" placeholder="?">
+                <span class="time-label">时</span>
+            </div>
+            <span class="colon">:</span>
+            <div class="input-group">
+                <input type="text" class="time-input" id="minuteInput" maxlength="2" placeholder="?">
+                <span class="time-label">分</span>
+            </div>
+        </div>
+
+        <!-- 数字键盘 -->
+        <div class="numpad">
+            <button class="num-btn" data-num="1">1</button>
+            <button class="num-btn" data-num="2">2</button>
+            <button class="num-btn" data-num="3">3</button>
+            <button class="num-btn" data-num="4">4</button>
+            <button class="num-btn" data-num="5">5</button>
+            <button class="num-btn" data-num="6">6</button>
+            <button class="num-btn" data-num="7">7</button>
+            <button class="num-btn" data-num="8">8</button>
+            <button class="num-btn" data-num="9">9</button>
+            <button class="num-btn zero" data-num="0">0</button>
+        </div>
+
+        <!-- 底部说明 -->
+        <div class="bottom-area">
+            <div class="task-title">🎯 游戏任务</div>
+            <div class="task-content">
+                观察时钟，根据<span class="highlight-red">红色时针</span>和<span class="highlight-blue">蓝色分针</span>的位置，写出当前时间
+            </div>
+            <button class="more-btn" id="moreBtn">更多玩法 ▼</button>
+        </div>
+    </div>
+
+    <div class="particles" id="particles"></div>
+
+    <div class="description">
+        <p>🍬 糖果风格 Demo 展示 - 彩虹配色</p>
+        <p>技术要点：<code>彩虹渐变</code> + <code>圆角糖果</code> + <code>3D阴影</code> + <code>粒子动画</code></p>
+    </div>
+
+    <script>
+        // ========== 糖果色数组 ==========
+        const candyColors = [
+            { main: '#FF6B6B', light: '#FF8E8E', dark: '#E74C3C' },  // 红色
+            { main: '#FFA94D', light: '#FFBE76', dark: '#F39C12' },  // 橙色
+            { main: '#FFE066', light: '#FFF3BF', dark: '#F1C40F' },  // 黄色
+            { main: '#69DB7C', light: '#8CE99A', dark: '#27AE60' },  // 绿色
+            { main: '#74C0FC', light: '#A5D8FF', dark: '#3498DB' },  // 蓝色
+            { main: '#B197FC', light: '#D0BFFF', dark: '#9B59B6' },  // 紫色
+            { main: '#F783AC', light: '#FFCAD4', dark: '#E91E63' }   // 粉色
+        ];
+
+        // ========== 时钟绘制 ==========
+        const canvas = document.getElementById('clockCanvas');
+        const ctx = canvas.getContext('2d');
+        const centerX = canvas.width / 2;
+        const centerY = canvas.height / 2;
+        const radius = 120;
+
+        // 当前时间（演示用：7:30）
+        let hour = 7;
+        let minute = 30;
+
+        function drawClock() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            // 表盘背景 - 渐变
+            const gradient = ctx.createRadialGradient(centerX, centerY, 0, centerX, centerY, radius);
+            gradient.addColorStop(0, '#FFFFFF');
+            gradient.addColorStop(1, '#F8F4FF');
+            
+            ctx.beginPath();
+            ctx.arc(centerX, centerY, radius, 0, Math.PI * 2);
+            ctx.fillStyle = gradient;
+            ctx.fill();
+            
+            // 彩虹边框
+            const borderGradient = ctx.createLinearGradient(0, 0, canvas.width, canvas.height);
+            borderGradient.addColorStop(0, '#FF6B6B');
+            borderGradient.addColorStop(0.2, '#FFA94D');
+            borderGradient.addColorStop(0.4, '#FFE066');
+            borderGradient.addColorStop(0.6, '#69DB7C');
+            borderGradient.addColorStop(0.8, '#74C0FC');
+            borderGradient.addColorStop(1, '#B197FC');
+            
+            ctx.strokeStyle = borderGradient;
+            ctx.lineWidth = 6;
+            ctx.stroke();
+
+            // 绘制刻度
+            for (let i = 0; i < 60; i++) {
+                const angle = (i * 6 - 90) * Math.PI / 180;
+                const isHour = i % 5 === 0;
+                const innerRadius = isHour ? radius - 18 : radius - 12;
+                const outerRadius = radius - 6;
+                
+                ctx.beginPath();
+                ctx.moveTo(
+                    centerX + Math.cos(angle) * innerRadius,
+                    centerY + Math.sin(angle) * innerRadius
+                );
+                ctx.lineTo(
+                    centerX + Math.cos(angle) * outerRadius,
+                    centerY + Math.sin(angle) * outerRadius
+                );
+                
+                // 彩虹刻度
+                const colorIndex = Math.floor(i / 5) % candyColors.length;
+                ctx.strokeStyle = candyColors[colorIndex].main;
+                ctx.lineWidth = isHour ? 4 : 2;
+                ctx.lineCap = 'round';
+                ctx.stroke();
+            }
+
+            // 绘制数字 1-12 - 渐变色
+            ctx.font = 'bold 22px Nunito, sans-serif';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            
+            for (let i = 1; i <= 12; i++) {
+                const angle = (i * 30 - 90) * Math.PI / 180;
+                const x = centerX + Math.cos(angle) * (radius - 32);
+                const y = centerY + Math.sin(angle) * (radius - 32);
+                
+                // 数字渐变
+                const colorIndex = (i - 1) % candyColors.length;
+                ctx.fillStyle = candyColors[colorIndex].dark;
+                
+                // 数字背景圆
+                ctx.beginPath();
+                ctx.arc(x, y, 18, 0, Math.PI * 2);
+                ctx.fillStyle = 'rgba(255,255,255,0.9)';
+                ctx.fill();
+                
+                // 数字文字
+                ctx.fillStyle = candyColors[colorIndex].dark;
+                ctx.fillText(i.toString(), x, y);
+            }
+
+            // 计算指针角度
+            const hourAngle = ((hour % 12) + minute / 60) * 30 - 90;
+            const minuteAngle = minute * 6 - 90;
+
+            // 绘制时针（红色）- 3D效果
+            ctx.save();
+            ctx.translate(centerX, centerY);
+            ctx.rotate(hourAngle * Math.PI / 180);
+            
+            // 时针阴影
+            ctx.fillStyle = 'rgba(0,0,0,0.15)';
+            ctx.beginPath();
+            ctx.roundRect(-5 + 3, -radius * 0.2 + 3, 12, radius * 0.5, 5);
+            ctx.fill();
+            
+            // 时针主体
+            const hourGradient = ctx.createLinearGradient(0, -radius * 0.2, 0, radius * 0.3);
+            hourGradient.addColorStop(0, '#FF8E8E');
+            hourGradient.addColorStop(0.5, '#FF6B6B');
+            hourGradient.addColorStop(1, '#E74C3C');
+            
+            ctx.fillStyle = hourGradient;
+            ctx.beginPath();
+            ctx.roundRect(-5, -radius * 0.2, 12, radius * 0.5, 5);
+            ctx.fill();
+            
+            // 时针高光
+            ctx.fillStyle = 'rgba(255,255,255,0.4)';
+            ctx.beginPath();
+            ctx.roundRect(-3, -radius * 0.18, 4, radius * 0.3, 2);
+            ctx.fill();
+            ctx.restore();
+
+            // 绘制分针（蓝色）- 3D效果
+            ctx.save();
+            ctx.translate(centerX, centerY);
+            ctx.rotate(minuteAngle * Math.PI / 180);
+            
+            // 分针阴影
+            ctx.fillStyle = 'rgba(0,0,0,0.15)';
+            ctx.beginPath();
+            ctx.roundRect(-4 + 3, -radius * 0.3 + 3, 10, radius * 0.7, 4);
+            ctx.fill();
+            
+            // 分针主体
+            const minuteGradient = ctx.createLinearGradient(0, -radius * 0.3, 0, radius * 0.4);
+            minuteGradient.addColorStop(0, '#A5D8FF');
+            minuteGradient.addColorStop(0.5, '#74C0FC');
+            minuteGradient.addColorStop(1, '#3498DB');
+            
+            ctx.fillStyle = minuteGradient;
+            ctx.beginPath();
+            ctx.roundRect(-4, -radius * 0.3, 10, radius * 0.7, 4);
+            ctx.fill();
+            
+            // 分针高光
+            ctx.fillStyle = 'rgba(255,255,255,0.4)';
+            ctx.beginPath();
+            ctx.roundRect(-2, -radius * 0.28, 3, radius * 0.4, 2);
+            ctx.fill();
+            ctx.restore();
+
+            // 中心点 - 彩虹渐变
+            ctx.beginPath();
+            ctx.arc(centerX, centerY, 12, 0, Math.PI * 2);
+            const centerGradient = ctx.createRadialGradient(centerX - 3, centerY - 3, 0, centerX, centerY, 12);
+            centerGradient.addColorStop(0, '#FFFFFF');
+            centerGradient.addColorStop(0.5, '#FFB6C1');
+            centerGradient.addColorStop(1, '#FF69B4');
+            ctx.fillStyle = centerGradient;
+            ctx.fill();
+            
+            ctx.strokeStyle = '#E91E63';
+            ctx.lineWidth = 2;
+            ctx.stroke();
+        }
+
+        // 绘制时钟
+        drawClock();
+
+        // ========== 模式切换 ==========
+        const mode1Btn = document.getElementById('mode1Btn');
+        const mode2Btn = document.getElementById('mode2Btn');
+
+        mode1Btn.addEventListener('click', () => {
+            mode1Btn.classList.add('active');
+            mode2Btn.classList.remove('active');
+            createParticles(window.innerWidth / 2, 100, '#FF6B6B');
+        });
+
+        mode2Btn.addEventListener('click', () => {
+            mode2Btn.classList.add('active');
+            mode1Btn.classList.remove('active');
+            createParticles(window.innerWidth / 2, 100, '#74C0FC');
+        });
+
+        // ========== 数字键盘交互 ==========
+        const numBtns = document.querySelectorAll('.num-btn');
+        const inputs = document.querySelectorAll('.time-input');
+        let currentInputIndex = 0;
+
+        // 点击输入框选中
+        inputs.forEach((input, index) => {
+            input.addEventListener('focus', () => {
+                currentInputIndex = index;
+            });
+        });
+
+        // 点击数字按钮
+        numBtns.forEach((btn, index) => {
+            btn.addEventListener('click', function() {
+                const num = this.dataset.num;
+                const input = inputs[currentInputIndex];
+                
+                if (input.value.length < 2) {
+                    input.value += num;
+                    
+                    // 随机颜色粒子
+                    const randomColor = candyColors[index % candyColors.length].main;
+                    const rect = input.getBoundingClientRect();
+                    createParticles(rect.left + rect.width / 2, rect.top + rect.height / 2, randomColor);
+                    
+                    // 检查是否正确
+                    setTimeout(() => checkAnswer(), 100);
+                    
+                    // 如果填满自动跳到下一个
+                    if (input.value.length === 2 && currentInputIndex < inputs.length - 1) {
+                        currentInputIndex++;
+                        inputs[currentInputIndex].focus();
+                    }
+                }
+            });
+        });
+
+        // 检查答案
+        function checkAnswer() {
+            const hourValue = inputs[0].value;
+            const minuteValue = inputs[1].value;
+            
+            // 正确答案：7:30
+            if (hourValue === '7' && minuteValue === '30') {
+                inputs[0].classList.add('correct');
+                inputs[1].classList.add('correct');
+                
+                // 成功动画
+                const gameContainer = document.getElementById('gameContainer');
+                gameContainer.classList.add('success');
+                
+                // 创建成功星星
+                createStars();
+                
+                // 创建彩色粒子雨
+                for (let i = 0; i < 5; i++) {
+                    setTimeout(() => {
+                        createParticles(
+                            Math.random() * window.innerWidth,
+                            Math.random() * 200,
+                            candyColors[Math.floor(Math.random() * candyColors.length)].main
+                        );
+                    }, i * 150);
+                }
+                
+                setTimeout(() => {
+                    gameContainer.classList.remove('success');
+                }, 800);
+            }
+        }
+
+        // 创建星星效果
+        function createStars() {
+            const stars = ['⭐', '🌟', '✨', '💫', '⭐'];
+            for (let i = 0; i < 8; i++) {
+                const star = document.createElement('div');
+                star.className = 'star';
+                star.textContent = stars[i % stars.length];
+                star.style.left = (Math.random() * 80 + 10) + '%';
+                star.style.top = (Math.random() * 30 + 10) + '%';
+                document.body.appendChild(star);
+                
+                setTimeout(() => star.remove(), 1000);
+            }
+        }
+
+        // ========== 粒子效果 ==========
+        const particlesContainer = document.getElementById('particles');
+
+        function createParticles(x, y, color) {
+            const particleCount = 8;
+            
+            for (let i = 0; i < particleCount; i++) {
+                const particle = document.createElement('div');
+                particle.className = 'particle';
+                particle.style.backgroundColor = color;
+                particle.style.left = x + 'px';
+                particle.style.top = y + 'px';
+                
+                const angle = (Math.PI * 2 * i) / particleCount + Math.random() * 0.5;
+                const distance = 50 + Math.random() * 40;
+                const tx = Math.cos(angle) * distance;
+                const ty = Math.sin(angle) * distance;
+                
+                particle.style.setProperty('--tx', tx + 'px');
+                particle.style.setProperty('--ty', ty + 'px');
+                particle.style.animation = 'particle-fly 0.6s ease forwards';
+                particle.style.boxShadow = `0 0 6px ${color}`;
+                
+                particlesContainer.appendChild(particle);
+                
+                setTimeout(() => {
+                    particle.remove();
+                }, 600);
+            }
+        }
+
+        // ========== 按钮点击效果 ==========
+        const actionBtns = document.querySelectorAll('.action-btn, .more-btn');
+        actionBtns.forEach((btn, index) => {
+            btn.addEventListener('click', function() {
+                const rect = this.getBoundingClientRect();
+                createParticles(
+                    rect.left + rect.width / 2,
+                    rect.top + rect.height / 2,
+                    candyColors[index % candyColors.length].main
+                );
+            });
+        });
+
+        // 更多按钮
+        document.getElementById('moreBtn').addEventListener('click', function() {
+            // 创建庆祝粒子
+            for (let i = 0; i < 3; i++) {
+                setTimeout(() => {
+                    createParticles(
+                        Math.random() * window.innerWidth,
+                        Math.random() * window.innerHeight,
+                        candyColors[Math.floor(Math.random() * candyColors.length)].main
+                    );
+                }, i * 100);
+            }
+        });
+    </script>
+</body>
+</html>

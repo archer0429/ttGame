@@ -1,0 +1,437 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>我的学习乐园</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            /* 主色调 - 深紫色背景 */
+            --bg-start: #4A1A6B;
+            --bg-end: #2D1145;
+            
+            /* 文字颜色 */
+            --text-white: #FFFFFF;
+            --text-light: #D7BDE2;
+            --text-accent: #F1C40F;
+            
+            /* 成功/错误色 */
+            --success-color: #2ECC71;
+            --error-color: #E8364F;
+
+            /* 糖果色板（六种基础色 - 规范定义） */
+            --candy-red-light: #FF6B7A;
+            --candy-red-main: #E8364F;
+            --candy-red-dark: #C0392B;
+            
+            --candy-orange-light: #F8B739;
+            --candy-orange-main: #F39C12;
+            --candy-orange-dark: #D35400;
+            
+            --candy-yellow-light: #F9E79F;
+            --candy-yellow-main: #F1C40F;
+            --candy-yellow-dark: #D4AC0D;
+            
+            --candy-green-light: #58D68D;
+            --candy-green-main: #2ECC71;
+            --candy-green-dark: #27AE60;
+            
+            --candy-blue-light: #5DADE2;
+            --candy-blue-main: #3498DB;
+            --candy-blue-dark: #2980B9;
+            
+            --candy-purple-light: #AF7AC5;
+            --candy-purple-main: #9B59B6;
+            --candy-purple-dark: #8E44AD;
+        }
+
+        body {
+            min-height: 100vh;
+            background: linear-gradient(180deg, var(--bg-start) 0%, var(--bg-end) 100%);
+            font-family: 'Arial', 'Microsoft YaHei', 'PingFang SC', sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 30px 20px;
+            overflow-x: hidden;
+        }
+
+        /* 页面标题 */
+        .page-title {
+            font-size: 32px;
+            font-weight: bold;
+            color: var(--text-white);
+            margin-bottom: 10px;
+            text-align: center;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+        }
+
+        /* 副标题 */
+        .page-subtitle {
+            font-size: 16px;
+            color: var(--text-light);
+            margin-bottom: 40px;
+            font-weight: 500;
+        }
+
+        /* 游戏卡片容器 */
+        .games-container {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 30px;
+            max-width: 500px;
+            width: 100%;
+            padding: 0 20px;
+        }
+
+        /* 游戏卡片 - 糖果风格 */
+        .game-card {
+            width: 100%;
+            aspect-ratio: 1;
+            border-radius: 24px;
+            position: relative;
+            cursor: pointer;
+            transition: transform 0.1s ease;
+            box-shadow: 
+                0 8px 0 rgba(0,0,0,0.2),
+                0 12px 20px rgba(0,0,0,0.3);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            background: linear-gradient(135deg, var(--card-light) 0%, var(--card-main) 50%, var(--card-dark) 100%);
+            overflow: hidden;
+        }
+
+        /* 卡片顶部高光效果 */
+        .game-card::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            border-radius: 24px;
+            background: linear-gradient(180deg, rgba(255,255,255,0.7) 0%, rgba(255,255,255,0.3) 50%, rgba(255,255,255,0) 100%);
+            pointer-events: none;
+        }
+
+        /* 卡片图标 */
+        .card-icon {
+            font-size: 50px;
+            margin-bottom: 10px;
+            position: relative;
+            z-index: 1;
+        }
+
+        /* 卡片标题 */
+        .card-title {
+            font-size: 20px;
+            font-weight: bold;
+            color: var(--text-white);
+            margin-bottom: 5px;
+            position: relative;
+            z-index: 1;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        }
+
+        /* 卡片描述 */
+        .card-desc {
+            font-size: 12px;
+            color: rgba(255,255,255,0.8);
+            text-align: center;
+            line-height: 1.4;
+            position: relative;
+            z-index: 1;
+        }
+
+        /* 卡片状态标签 */
+        .card-status {
+            position: absolute;
+            bottom: 15px;
+            padding: 4px 12px;
+            border-radius: 15px;
+            font-size: 12px;
+            font-weight: bold;
+            color: var(--text-white);
+            background: rgba(255,255,255,0.2);
+            backdrop-filter: blur(4px);
+            z-index: 1;
+        }
+
+        /* 卡片点击效果 */
+        .game-card:active {
+            transform: translateY(4px);
+            box-shadow: 
+                0 4px 0 rgba(0,0,0,0.2),
+                0 6px 12px rgba(0,0,0,0.3);
+        }
+
+        /* 悬停动画 */
+        .game-card:hover {
+            animation: bounce 0.3s ease;
+        }
+
+        @keyframes bounce {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+
+        /* 糖果色卡片 */
+        .game-card.red {
+            --card-light: var(--candy-red-light);
+            --card-main: var(--candy-red-main);
+            --card-dark: var(--candy-red-dark);
+        }
+
+        .game-card.orange {
+            --card-light: var(--candy-orange-light);
+            --card-main: var(--candy-orange-main);
+            --card-dark: var(--candy-orange-dark);
+        }
+
+        .game-card.yellow {
+            --card-light: var(--candy-yellow-light);
+            --card-main: var(--candy-yellow-main);
+            --card-dark: var(--candy-yellow-dark);
+        }
+
+        .game-card.green {
+            --card-light: var(--candy-green-light);
+            --card-main: var(--candy-green-main);
+            --card-dark: var(--candy-green-dark);
+        }
+
+        .game-card.blue {
+            --card-light: var(--candy-blue-light);
+            --card-main: var(--candy-blue-main);
+            --card-dark: var(--candy-blue-dark);
+        }
+
+        .game-card.purple {
+            --card-light: var(--candy-purple-light);
+            --card-main: var(--candy-purple-main);
+            --card-dark: var(--candy-purple-dark);
+        }
+
+        /* 即将上线卡片 */
+        .game-card.coming-soon {
+            opacity: 0.6;
+            cursor: not-allowed;
+            position: relative;
+        }
+
+        .game-card.coming-soon::before {
+            content: '🔒';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 60px;
+            z-index: 2;
+            opacity: 0.7;
+        }
+
+        .game-card.coming-soon:hover {
+            animation: none;
+        }
+
+        /* 粒子效果容器 */
+        .particles {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            overflow: hidden;
+            z-index: 1000;
+        }
+
+        .particle {
+            position: absolute;
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            pointer-events: none;
+        }
+
+        @keyframes particle-fly {
+            0% {
+                transform: translate(0, 0) scale(1);
+                opacity: 1;
+            }
+            100% {
+                transform: translate(var(--tx), var(--ty)) scale(0);
+                opacity: 0;
+            }
+        }
+
+        /* 页脚 */
+        .footer {
+            margin-top: 60px;
+            text-align: center;
+            color: var(--text-light);
+            font-size: 14px;
+        }
+
+        /* 响应式 */
+        @media (max-width: 400px) {
+            .page-title {
+                font-size: 26px;
+            }
+            
+            .games-container {
+                grid-template-columns: 1fr;
+                gap: 25px;
+                padding: 0 15px;
+            }
+
+            .game-card {
+                padding: 15px;
+            }
+
+            .card-icon {
+                font-size: 40px;
+            }
+
+            .card-title {
+                font-size: 18px;
+            }
+
+            .card-desc {
+                font-size: 11px;
+            }
+        }
+
+        @media (min-width: 600px) {
+            .games-container {
+                grid-template-columns: repeat(3, 1fr);
+                max-width: 700px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- 页面标题 -->
+    <h1 class="page-title">🎮 我的学习乐园</h1>
+    <p class="page-subtitle">选择你喜欢的小游戏，开始学习吧！</p>
+
+    <!-- 游戏列表 -->
+    <div class="games-container" id="gamesContainer">
+        <!-- 时钟挑战卡片 -->
+        <div class="game-card purple" data-game="clock-challenge">
+            <div class="card-icon">🕐</div>
+            <h3 class="card-title">时钟挑战</h3>
+            <p class="card-desc">学习认识时钟，分清时针和分针</p>
+            <span class="card-status">可玩</span>
+        </div>
+
+        <!-- 更多游戏（敬请期待） -->
+        <div class="game-card blue coming-soon">
+            <div class="card-icon">❓</div>
+            <h3 class="card-title">更多游戏</h3>
+            <p class="card-desc">精彩内容即将上线</p>
+            <span class="card-status">筹备中</span>
+        </div>
+
+        <!-- 更多游戏（敬请期待） -->
+        <div class="game-card green coming-soon">
+            <div class="card-icon">❓</div>
+            <h3 class="card-title">更多游戏</h3>
+            <p class="card-desc">精彩内容即将上线</p>
+            <span class="card-status">筹备中</span>
+        </div>
+
+        <!-- 更多游戏（敬请期待） -->
+        <div class="game-card orange coming-soon">
+            <div class="card-icon">❓</div>
+            <h3 class="card-title">更多游戏</h3>
+            <p class="card-desc">精彩内容即将上线</p>
+            <span class="card-status">筹备中</span>
+        </div>
+    </div>
+
+    <!-- 页脚 -->
+    <div class="footer">
+        <p>用 ❤️ 制作</p>
+    </div>
+
+    <!-- 粒子效果容器 -->
+    <div class="particles" id="particles"></div>
+
+    <script>
+        // 糖果色数组（规范定义）
+        const candyColors = [
+            { light: '#FF6B7A', main: '#E8364F', dark: '#C0392B' },   // 红色
+            { light: '#F8B739', main: '#F39C12', dark: '#D35400' },   // 橙色
+            { light: '#F9E79F', main: '#F1C40F', dark: '#D4AC0D' },   // 黄色
+            { light: '#58D68D', main: '#2ECC71', dark: '#27AE60' },   // 绿色
+            { light: '#5DADE2', main: '#3498DB', dark: '#2980B9' },   // 蓝色
+            { light: '#AF7AC5', main: '#9B59B6', dark: '#8E44AD' }    // 紫色
+        ];
+
+        // 粒子容器
+        const particlesContainer = document.getElementById('particles');
+
+        // 创建粒子效果
+        function createParticles(x, y, color) {
+            const particleCount = 8;
+            
+            for (let i = 0; i < particleCount; i++) {
+                const particle = document.createElement('div');
+                particle.className = 'particle';
+                particle.style.backgroundColor = color;
+                particle.style.left = x + 'px';
+                particle.style.top = y + 'px';
+                
+                const angle = (Math.PI * 2 * i) / particleCount;
+                const distance = 60 + Math.random() * 40;
+                const tx = Math.cos(angle) * distance;
+                const ty = Math.sin(angle) * distance;
+                
+                particle.style.setProperty('--tx', tx + 'px');
+                particle.style.setProperty('--ty', ty + 'px');
+                particle.style.animation = 'particle-fly 0.5s ease forwards';
+                
+                particlesContainer.appendChild(particle);
+                
+                setTimeout(() => {
+                    particle.remove();
+                }, 500);
+            }
+        }
+
+        // 游戏卡片点击事件
+        const gameCards = document.querySelectorAll('.game-card:not(.coming-soon)');
+        
+        gameCards.forEach(card => {
+            card.addEventListener('click', function(e) {
+                const gameId = this.dataset.game;
+                const rect = this.getBoundingClientRect();
+                const centerX = rect.left + rect.width / 2;
+                const centerY = rect.top + rect.height / 2;
+                
+                // 创建粒子效果
+                const colorIndex = ['red', 'orange', 'yellow', 'green', 'blue', 'purple'].indexOf(this.classList[1]);
+                const color = candyColors[colorIndex] || candyColors[5];
+                createParticles(centerX, centerY, color.main);
+
+                // 延迟跳转
+                setTimeout(() => {
+                    if (gameId === 'clock-challenge') {
+                        window.location.href = 'clock-challenge.html';
+                    }
+                }, 300);
+            });
+        });
+    </script>
+</body>
+</html>

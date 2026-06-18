@@ -1,0 +1,1185 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>时钟挑战</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            /* 主色调 */
+            --bg-start: #4A1A6B;
+            --bg-end: #2D1145;
+            
+            --text-white: #FFFFFF;
+            --text-light: #D7BDE2;
+            --text-accent: #F1C40F;
+            
+            --success-color: #2ECC71;
+            --error-color: #E8364F;
+
+            /* 糖果色板 */
+            --candy-red-light: #FF6B7A;
+            --candy-red-main: #E8364F;
+            --candy-red-dark: #C0392B;
+            
+            --candy-orange-light: #F8B739;
+            --candy-orange-main: #F39C12;
+            --candy-orange-dark: #D35400;
+            
+            --candy-yellow-light: #F9E79F;
+            --candy-yellow-main: #F1C40F;
+            --candy-yellow-dark: #D4AC0D;
+            
+            --candy-green-light: #58D68D;
+            --candy-green-main: #2ECC71;
+            --candy-green-dark: #27AE60;
+            
+            --candy-blue-light: #5DADE2;
+            --candy-blue-main: #3498DB;
+            --candy-blue-dark: #2980B9;
+            
+            --candy-purple-light: #AF7AC5;
+            --candy-purple-main: #9B59B6;
+            --candy-purple-dark: #8E44AD;
+
+            /* 时钟专用色 */
+            --clock-face: #FFFFFF;
+            --clock-number: #1E90FF;
+            --clock-tick: #333333;
+            --hour-hand: #E8364F;
+            --minute-hand: #3498DB;
+            --second-hand: #27AE60;
+            --clock-center: #888888;
+        }
+
+        body {
+            min-height: 100vh;
+            background: linear-gradient(180deg, var(--bg-start) 0%, var(--bg-end) 100%);
+            font-family: 'Arial', 'Microsoft YaHei', 'PingFang SC', sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+            overflow-x: hidden;
+        }
+
+        /* 返回按钮 */
+        .back-btn {
+            align-self: flex-start;
+            padding: 10px 20px;
+            border-radius: 20px;
+            background: linear-gradient(135deg, var(--candy-purple-light), var(--candy-purple-main), var(--candy-purple-dark));
+            color: var(--text-white);
+            font-weight: bold;
+            border: none;
+            cursor: pointer;
+            box-shadow: 0 6px 0 rgba(0,0,0,0.2), 0 8px 16px rgba(0,0,0,0.3);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 14px;
+            transition: transform 0.1s ease;
+            margin-bottom: 20px;
+        }
+
+        .back-btn:active {
+            transform: translateY(3px);
+            box-shadow: 0 3px 0 rgba(0,0,0,0.2), 0 4px 8px rgba(0,0,0,0.3);
+        }
+
+        /* 页面标题 */
+        .page-title {
+            font-size: 28px;
+            font-weight: bold;
+            color: var(--text-white);
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        /* 模式切换按钮 */
+        .mode-switch {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 25px;
+        }
+
+        .mode-btn {
+            padding: 12px 24px;
+            border-radius: 20px;
+            background: rgba(255,255,255,0.2);
+            color: var(--text-light);
+            font-weight: bold;
+            border: none;
+            cursor: pointer;
+            font-size: 16px;
+            transition: all 0.3s ease;
+        }
+
+        .mode-btn.active {
+            background: linear-gradient(135deg, var(--candy-purple-light), var(--candy-purple-main));
+            color: var(--text-white);
+            box-shadow: 0 6px 0 rgba(0,0,0,0.2), 0 8px 16px rgba(0,0,0,0.3);
+        }
+
+        /* 进度显示 */
+        .progress {
+            font-size: 16px;
+            color: var(--text-light);
+            margin-bottom: 15px;
+        }
+
+        /* 时钟容器 */
+        .clock-container {
+            position: relative;
+            width: 280px;
+            height: 280px;
+            margin: 20px auto;
+        }
+
+        /* 时钟表盘 */
+        .clock-face {
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            background: var(--clock-face);
+            box-shadow: 
+                0 8px 0 rgba(0,0,0,0.2),
+                0 12px 20px rgba(0,0,0,0.3);
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* 时钟数字 */
+        .clock-number {
+            position: absolute;
+            font-size: 24px;
+            font-weight: bold;
+            color: var(--clock-number);
+            width: 30px;
+            height: 30px;
+            text-align: center;
+            line-height: 30px;
+        }
+
+        /* 时钟刻度 */
+        .clock-tick {
+            position: absolute;
+            width: 2px;
+            height: 8px;
+            background: var(--clock-tick);
+            left: 50%;
+            top: 10px;
+            transform-origin: center 130px;
+        }
+
+        .clock-tick.long {
+            height: 15px;
+            width: 3px;
+        }
+
+        /* 指针容器 */
+        .clock-hands {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 0;
+            height: 0;
+        }
+
+        /* 时针 */
+        .hour-hand {
+            position: absolute;
+            width: 6px;
+            height: 60px;
+            background: var(--hour-hand);
+            border-radius: 10px;
+            bottom: 0;
+            left: -3px;
+            transform-origin: bottom center;
+            cursor: grab;
+            z-index: 3;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        }
+
+        /* 分针 */
+        .minute-hand {
+            position: absolute;
+            width: 4px;
+            height: 90px;
+            background: var(--minute-hand);
+            border-radius: 10px;
+            bottom: 0;
+            left: -2px;
+            transform-origin: bottom center;
+            cursor: grab;
+            z-index: 4;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        }
+
+        /* 秒针 */
+        .second-hand {
+            position: absolute;
+            width: 2px;
+            height: 100px;
+            background: var(--second-hand);
+            border-radius: 10px;
+            bottom: 0;
+            left: -1px;
+            transform-origin: bottom center;
+            cursor: grab;
+            z-index: 5;
+        }
+
+        /* 中心圆点 */
+        .clock-center {
+            position: absolute;
+            width: 16px;
+            height: 16px;
+            background: var(--clock-center);
+            border-radius: 50%;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 6;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+        }
+
+        /* 拨一拨模式隐藏秒针 */
+        .clock-container.no-second .second-hand {
+            display: none;
+        }
+
+        /* 目标时间显示 */
+        .target-time {
+            text-align: center;
+            margin: 25px 0;
+        }
+
+        .target-label {
+            font-size: 16px;
+            color: var(--text-light);
+            margin-bottom: 10px;
+        }
+
+        .target-value {
+            font-size: 48px;
+            font-weight: bold;
+            color: var(--text-accent);
+            text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+        }
+
+        /* 填时间模式 - 输入区域 */
+        .input-area {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 15px;
+            margin: 25px 0;
+        }
+
+        .time-input-box {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .time-input {
+            width: 80px;
+            height: 80px;
+            border: 3px solid rgba(255,255,255,0.3);
+            border-radius: 15px;
+            background: rgba(255,255,255,0.1);
+            font-size: 48px;
+            font-weight: bold;
+            color: var(--text-white);
+            text-align: center;
+            outline: none;
+            transition: all 0.3s ease;
+        }
+
+        .time-input:focus, .time-input.selected {
+            border-color: var(--candy-yellow-main);
+            background: rgba(241, 196, 15, 0.2);
+            box-shadow: 0 0 15px rgba(241, 196, 15, 0.4);
+        }
+
+        .time-input.correct {
+            border-color: var(--success-color);
+            background: rgba(46, 204, 113, 0.2);
+        }
+
+        .time-input.wrong {
+            border-color: var(--error-color);
+            background: rgba(232, 54, 79, 0.2);
+        }
+
+        .time-label {
+            font-size: 14px;
+            color: var(--text-light);
+            margin-top: 8px;
+        }
+
+        .colon {
+            font-size: 48px;
+            font-weight: bold;
+            color: var(--text-accent);
+        }
+
+        /* 数字键盘 */
+        .num-pad {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+            max-width: 300px;
+            margin: 25px auto;
+        }
+
+        .num-btn {
+            width: 80px;
+            height: 80px;
+            border-radius: 24px;
+            border: none;
+            font-size: 36px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: transform 0.1s ease;
+            box-shadow: 0 8px 0 rgba(0,0,0,0.2), 0 12px 20px rgba(0,0,0,0.3);
+            background: linear-gradient(135deg, var(--btn-light) 0%, var(--btn-main) 50%, var(--btn-dark) 100%);
+            color: var(--text-white);
+        }
+
+        .num-btn:active {
+            transform: translateY(4px);
+            box-shadow: 0 4px 0 rgba(0,0,0,0.2), 0 6px 12px rgba(0,0,0,0.3);
+        }
+
+        /* 数字键盘颜色 */
+        .num-btn.btn-red {
+            --btn-light: var(--candy-red-light);
+            --btn-main: var(--candy-red-main);
+            --btn-dark: var(--candy-red-dark);
+        }
+
+        .num-btn.btn-orange {
+            --btn-light: var(--candy-orange-light);
+            --btn-main: var(--candy-orange-main);
+            --btn-dark: var(--candy-orange-dark);
+        }
+
+        .num-btn.btn-yellow {
+            --btn-light: var(--candy-yellow-light);
+            --btn-main: var(--candy-yellow-main);
+            --btn-dark: var(--candy-yellow-dark);
+        }
+
+        .num-btn.btn-green {
+            --btn-light: var(--candy-green-light);
+            --btn-main: var(--candy-green-main);
+            --btn-dark: var(--candy-green-dark);
+        }
+
+        .num-btn.btn-blue {
+            --btn-light: var(--candy-blue-light);
+            --btn-main: var(--candy-blue-main);
+            --btn-dark: var(--candy-blue-dark);
+        }
+
+        .num-btn.btn-purple {
+            --btn-light: var(--candy-purple-light);
+            --btn-main: var(--candy-purple-main);
+            --btn-dark: var(--candy-purple-dark);
+        }
+
+        /* 删除按钮 */
+        .num-btn.delete {
+            font-size: 24px;
+        }
+
+        /* 确认按钮 */
+        .confirm-btn {
+            padding: 15px 60px;
+            border-radius: 30px;
+            background: linear-gradient(135deg, var(--candy-green-light), var(--candy-green-main), var(--candy-green-dark));
+            color: var(--text-white);
+            font-weight: bold;
+            border: none;
+            cursor: pointer;
+            font-size: 20px;
+            box-shadow: 0 8px 0 rgba(0,0,0,0.2), 0 12px 20px rgba(0,0,0,0.3);
+            transition: transform 0.1s ease;
+            margin-top: 20px;
+        }
+
+        .confirm-btn:active {
+            transform: translateY(4px);
+            box-shadow: 0 4px 0 rgba(0,0,0,0.2), 0 6px 12px rgba(0,0,0,0.3);
+        }
+
+        /* 成功/失败提示 */
+        .message-box {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) scale(0);
+            padding: 40px 60px;
+            border-radius: 30px;
+            background: rgba(255,255,255,0.95);
+            text-align: center;
+            z-index: 100;
+            transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            box-shadow: 0 20px 50px rgba(0,0,0,0.3);
+        }
+
+        .message-box.show {
+            transform: translate(-50%, -50%) scale(1);
+        }
+
+        .message-icon {
+            font-size: 80px;
+            margin-bottom: 20px;
+        }
+
+        .message-text {
+            font-size: 24px;
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 25px;
+        }
+
+        .message-btn {
+            padding: 12px 30px;
+            border-radius: 25px;
+            background: linear-gradient(135deg, var(--candy-purple-light), var(--candy-purple-main));
+            color: var(--text-white);
+            font-weight: bold;
+            border: none;
+            cursor: pointer;
+            font-size: 16px;
+        }
+
+        /* 底部说明 */
+        .instructions {
+            margin-top: 30px;
+            text-align: center;
+            color: var(--text-light);
+            font-size: 14px;
+            line-height: 1.6;
+        }
+
+        .instructions .highlight-red {
+            color: var(--candy-red-main);
+            font-weight: bold;
+        }
+
+        .instructions .highlight-blue {
+            color: var(--candy-blue-main);
+            font-weight: bold;
+        }
+
+        /* 粒子效果容器 */
+        .particles {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            overflow: hidden;
+            z-index: 200;
+        }
+
+        .particle {
+            position: absolute;
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            pointer-events: none;
+        }
+
+        @keyframes particle-fly {
+            0% {
+                transform: translate(0, 0) scale(1);
+                opacity: 1;
+            }
+            100% {
+                transform: translate(var(--tx), var(--ty)) scale(0);
+                opacity: 0;
+            }
+        }
+
+        /* 隐藏元素 */
+        .hidden {
+            display: none;
+        }
+
+        /* 响应式 */
+        @media (max-width: 400px) {
+            .page-title {
+                font-size: 24px;
+            }
+
+            .clock-container {
+                width: 240px;
+                height: 240px;
+            }
+
+            .clock-number {
+                font-size: 20px;
+                width: 25px;
+                height: 25px;
+                line-height: 25px;
+            }
+
+            .hour-hand {
+                width: 5px;
+                height: 50px;
+                left: -2.5px;
+            }
+
+            .minute-hand {
+                width: 3px;
+                height: 75px;
+                left: -1.5px;
+            }
+
+            .second-hand {
+                width: 2px;
+                height: 85px;
+                left: -1px;
+            }
+
+            .target-value {
+                font-size: 40px;
+            }
+
+            .time-input {
+                width: 70px;
+                height: 70px;
+                font-size: 40px;
+            }
+
+            .num-btn {
+                width: 70px;
+                height: 70px;
+                font-size: 30px;
+            }
+
+            .mode-btn {
+                padding: 10px 18px;
+                font-size: 14px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- 返回按钮 -->
+    <button class="back-btn" onclick="window.location.href='index.html'">
+        ← 返回
+    </button>
+
+    <!-- 页面标题 -->
+    <h1 class="page-title">🕐 时钟挑战</h1>
+
+    <!-- 模式切换 -->
+    <div class="mode-switch">
+        <button class="mode-btn active" id="modeFill" onclick="switchMode('fill')">填一填</button>
+        <button class="mode-btn" id="modeSet" onclick="switchMode('set')">拨一拨</button>
+    </div>
+
+    <!-- 进度显示 -->
+    <div class="progress">第 <span id="currentQuestion">1</span> / 5 题</div>
+
+    <!-- 时钟容器 -->
+    <div class="clock-container">
+        <div class="clock-face" id="clockFace">
+            <!-- 数字将通过JS生成 -->
+            <!-- 刻度将通过JS生成 -->
+        </div>
+        <div class="clock-hands">
+            <div class="hour-hand" id="hourHand"></div>
+            <div class="minute-hand" id="minuteHand"></div>
+            <div class="second-hand" id="secondHand"></div>
+        </div>
+        <div class="clock-center"></div>
+    </div>
+
+    <!-- 目标时间（拨一拨模式） -->
+    <div class="target-time hidden" id="targetTime">
+        <div class="target-label">请将时钟拨到：</div>
+        <div class="target-value" id="targetValue">7:30</div>
+    </div>
+
+    <!-- 输入区域（填一填模式） -->
+    <div class="input-area hidden" id="inputArea">
+        <div class="time-input-box">
+            <input type="text" class="time-input" id="hourInput" maxlength="2" placeholder="0">
+            <div class="time-label">时</div>
+        </div>
+        <div class="colon">:</div>
+        <div class="time-input-box">
+            <input type="text" class="time-input" id="minuteInput" maxlength="2" placeholder="0">
+            <div class="time-label">分</div>
+        </div>
+        <div class="colon">:</div>
+        <div class="time-input-box">
+            <input type="text" class="time-input" id="secondInput" maxlength="2" placeholder="0">
+            <div class="time-label">秒</div>
+        </div>
+    </div>
+
+    <!-- 数字键盘（填一填模式） -->
+    <div class="num-pad hidden" id="numPad">
+        <button class="num-btn btn-blue" onclick="inputNumber('1')">1</button>
+        <button class="num-btn btn-blue" onclick="inputNumber('2')">2</button>
+        <button class="num-btn btn-blue" onclick="inputNumber('3')">3</button>
+        <button class="num-btn btn-blue" onclick="inputNumber('4')">4</button>
+        <button class="num-btn btn-blue" onclick="inputNumber('5')">5</button>
+        <button class="num-btn btn-blue" onclick="inputNumber('6')">6</button>
+        <button class="num-btn btn-blue" onclick="inputNumber('7')">7</button>
+        <button class="num-btn btn-blue" onclick="inputNumber('8')">8</button>
+        <button class="num-btn btn-blue" onclick="inputNumber('9')">9</button>
+        <button class="num-btn btn-red delete" onclick="deleteNumber()">⌫</button>
+        <button class="num-btn btn-blue" onclick="inputNumber('0')">0</button>
+        <button class="num-btn btn-green" onclick="confirmAnswer()">✓</button>
+    </div>
+
+    <!-- 确认按钮（拨一拨模式） -->
+    <button class="confirm-btn hidden" id="setConfirmBtn" onclick="checkSetMode()">确认提交</button>
+
+    <!-- 底部说明 -->
+    <div class="instructions" id="instructions">
+        <p>游戏任务：根据时钟显示的时间，填入正确的数字</p>
+        <p>方法：点击数字键盘，将数字填入对应的框中</p>
+    </div>
+
+    <!-- 成功/失败弹窗 -->
+    <div class="message-box" id="messageBox">
+        <div class="message-icon" id="messageIcon">🎉</div>
+        <div class="message-text" id="messageText">太棒了！答对了！</div>
+        <button class="message-btn" onclick="nextQuestion()">下一题</button>
+    </div>
+
+    <!-- 粒子效果容器 -->
+    <div class="particles" id="particles"></div>
+
+    <script>
+        // 游戏状态
+        const gameState = {
+            mode: 'fill',
+            currentQuestion: 1,
+            totalQuestions: 5,
+            questions: [],
+            currentTime: { hour: 7, minute: 30, second: 0 },
+            selectedInput: null
+        };
+
+        // 生成题目
+        function generateQuestions() {
+            const questions = [];
+            for (let i = 0; i < 5; i++) {
+                const hour = Math.floor(Math.random() * 12) + 1;
+                const minute = Math.floor(Math.random() * 60);
+                const second = Math.floor(Math.random() * 60);
+                questions.push({ hour, minute, second });
+            }
+            return questions;
+        }
+
+        // 初始化时钟
+        function initClock() {
+            const clockFace = document.getElementById('clockFace');
+            
+            // 生成数字
+            for (let i = 1; i <= 12; i++) {
+                const number = document.createElement('div');
+                number.className = 'clock-number';
+                number.textContent = i;
+                
+                const angle = (i - 3) * 30;
+                const radius = 105;
+                const x = Math.cos(angle * Math.PI / 180) * radius;
+                const y = Math.sin(angle * Math.PI / 180) * radius;
+                
+                number.style.left = `calc(50% + ${x}px - 15px)`;
+                number.style.top = `calc(50% + ${y}px - 15px)`;
+                
+                clockFace.appendChild(number);
+            }
+            
+            // 生成刻度
+            for (let i = 0; i < 60; i++) {
+                const tick = document.createElement('div');
+                tick.className = `clock-tick ${i % 5 === 0 ? 'long' : ''}`;
+                tick.style.transform = `rotate(${i * 6}deg)`;
+                clockFace.appendChild(tick);
+            }
+        }
+
+        // 设置时钟指针位置
+        function setClock(hour, minute, second) {
+            const hourAngle = (hour % 12) * 30 + minute * 0.5;
+            const minuteAngle = minute * 6 + second * 0.1;
+            const secondAngle = second * 6;
+            
+            document.getElementById('hourHand').style.transform = `rotate(${hourAngle}deg)`;
+            document.getElementById('minuteHand').style.transform = `rotate(${minuteAngle}deg)`;
+            document.getElementById('secondHand').style.transform = `rotate(${secondAngle}deg)`;
+            
+            gameState.currentTime = { hour, minute, second };
+        }
+
+        // 切换模式
+        function switchMode(mode) {
+            gameState.mode = mode;
+            
+            document.getElementById('modeFill').classList.toggle('active', mode === 'fill');
+            document.getElementById('modeSet').classList.toggle('active', mode === 'set');
+            
+            document.getElementById('targetTime').classList.toggle('hidden', mode === 'fill');
+            document.getElementById('inputArea').classList.toggle('hidden', mode === 'set');
+            document.getElementById('numPad').classList.toggle('hidden', mode === 'set');
+            document.getElementById('setConfirmBtn').classList.toggle('hidden', mode === 'fill');
+            
+            // 拨一拨模式隐藏秒针
+            document.querySelector('.clock-container').classList.toggle('no-second', mode === 'set');
+            
+            const instructions = document.getElementById('instructions');
+            if (mode === 'fill') {
+                instructions.innerHTML = `
+                    <p>游戏任务：根据时钟显示的时间，填入正确的数字</p>
+                    <p>方法：点击数字键盘，将数字填入对应的框中</p>
+                `;
+            } else {
+                instructions.innerHTML = `
+                    <p>游戏任务：将时针与分针拨到指定时间（hh:mm）</p>
+                    <p>方法：先拨<span class="highlight-red">红色时针</span>到大致位置，再拨<span class="highlight-blue">蓝色分针</span>微调</p>
+                `;
+            }
+            
+            // 重置当前题目
+            gameState.currentQuestion = 1;
+            updateProgress();
+            loadQuestion();
+        }
+
+        // 更新进度
+        function updateProgress() {
+            document.getElementById('currentQuestion').textContent = gameState.currentQuestion;
+        }
+
+        // 加载题目
+        function loadQuestion() {
+            if (gameState.questions.length === 0) {
+                gameState.questions = generateQuestions();
+            }
+            
+            const question = gameState.questions[gameState.currentQuestion - 1];
+            
+            if (gameState.mode === 'fill') {
+                // 填一填模式：显示时钟，隐藏目标时间
+                setClock(question.hour, question.minute, question.second);
+                clearInputs();
+            } else {
+                // 拨一拨模式：显示目标时间 hh:mm，设置随机时钟初始位置
+                document.getElementById('targetValue').textContent = 
+                    `${question.hour}:${String(question.minute).padStart(2, '0')}`;
+                
+                // 设置随机初始位置（秒针为0）
+                const randomHour = Math.floor(Math.random() * 12) + 1;
+                const randomMinute = Math.floor(Math.random() * 60);
+                setClock(randomHour, randomMinute, 0);
+            }
+        }
+
+        // 清除输入
+        function clearInputs() {
+            document.getElementById('hourInput').value = '';
+            document.getElementById('minuteInput').value = '';
+            document.getElementById('secondInput').value = '';
+            
+            document.getElementById('hourInput').classList.remove('correct', 'wrong', 'selected');
+            document.getElementById('minuteInput').classList.remove('correct', 'wrong', 'selected');
+            document.getElementById('secondInput').classList.remove('correct', 'wrong', 'selected');
+
+            // 默认选中第一个输入框
+            document.getElementById('hourInput').classList.add('selected');
+            gameState.selectedInput = document.getElementById('hourInput');
+        }
+
+        // 输入数字
+        function inputNumber(num) {
+            const inputs = [document.getElementById('hourInput'), 
+                           document.getElementById('minuteInput'), 
+                           document.getElementById('secondInput')];
+            
+            let targetInput = gameState.selectedInput;
+            
+            if (!targetInput) {
+                targetInput = inputs[0];
+            }
+            
+            if (targetInput.value.length < 2) {
+                targetInput.value += num;
+                
+                // 自动跳到下一个输入框
+                const idx = inputs.indexOf(targetInput);
+                if (targetInput.value.length === 2 && idx < inputs.length - 1) {
+                    // 更新选中状态
+                    document.querySelectorAll('.time-input').forEach(el => el.classList.remove('selected'));
+                    inputs[idx + 1].classList.add('selected');
+                    gameState.selectedInput = inputs[idx + 1];
+                    inputs[idx + 1].focus();
+                }
+            }
+        }
+
+        // 删除数字
+        function deleteNumber() {
+            const inputs = [document.getElementById('hourInput'), 
+                           document.getElementById('minuteInput'), 
+                           document.getElementById('secondInput')];
+            
+            let targetInput = gameState.selectedInput;
+            
+            if (!targetInput) {
+                targetInput = inputs.find(i => i.value.length > 0) || inputs[inputs.length - 1];
+            }
+            
+            if (targetInput.value.length > 0) {
+                targetInput.value = targetInput.value.slice(0, -1);
+                
+                // 自动跳到前一个输入框
+                const idx = inputs.indexOf(targetInput);
+                if (targetInput.value.length === 0 && idx > 0) {
+                    document.querySelectorAll('.time-input').forEach(el => el.classList.remove('selected'));
+                    inputs[idx - 1].classList.add('selected');
+                    gameState.selectedInput = inputs[idx - 1];
+                    inputs[idx - 1].focus();
+                }
+            }
+        }
+
+        // 确认答案（填一填模式）
+        function confirmAnswer() {
+            const hour = parseInt(document.getElementById('hourInput').value) || 0;
+            const minute = parseInt(document.getElementById('minuteInput').value) || 0;
+            const second = parseInt(document.getElementById('secondInput').value) || 0;
+            
+            const question = gameState.questions[gameState.currentQuestion - 1];
+            
+            const hourCorrect = hour === question.hour;
+            const minuteCorrect = minute === question.minute;
+            const secondCorrect = second === question.second;
+            
+            document.getElementById('hourInput').classList.toggle('correct', hourCorrect);
+            document.getElementById('hourInput').classList.toggle('wrong', !hourCorrect);
+            document.getElementById('minuteInput').classList.toggle('correct', minuteCorrect);
+            document.getElementById('minuteInput').classList.toggle('wrong', !minuteCorrect);
+            document.getElementById('secondInput').classList.toggle('correct', secondCorrect);
+            document.getElementById('secondInput').classList.toggle('wrong', !secondCorrect);
+            
+            if (hourCorrect && minuteCorrect && secondCorrect) {
+                showSuccess();
+            }
+        }
+
+        // 检查拨一拨模式答案
+        function checkSetMode() {
+            const question = gameState.questions[gameState.currentQuestion - 1];
+            
+            // 计算时针角度对应的时间
+            const hourAngle = parseFloat(document.getElementById('hourHand').style.transform.replace('rotate(', '').replace('deg)', ''));
+            const minuteAngle = parseFloat(document.getElementById('minuteHand').style.transform.replace('rotate(', '').replace('deg)', ''));
+            
+            const actualHour = Math.round((hourAngle % 360) / 30) || 12;
+            const actualMinute = Math.round((minuteAngle % 360) / 6);
+            
+            const hourCorrect = actualHour === question.hour;
+            const minuteCorrect = actualMinute === question.minute;
+            
+            if (hourCorrect && minuteCorrect) {
+                showSuccess();
+            } else {
+                showFail();
+            }
+        }
+
+        // 显示成功提示
+        function showSuccess() {
+            createParticles(window.innerWidth / 2, window.innerHeight / 2, '#F1C40F');
+            
+            document.getElementById('messageIcon').textContent = '🎉';
+            document.getElementById('messageText').textContent = '太棒了！答对了！';
+            document.getElementById('messageBox').classList.add('show');
+        }
+
+        // 显示失败提示
+        function showFail() {
+            document.getElementById('messageIcon').textContent = '😅';
+            document.getElementById('messageText').textContent = '再试一次吧！';
+            document.getElementById('messageBox').classList.add('show');
+        }
+
+        // 下一题
+        function nextQuestion() {
+            document.getElementById('messageBox').classList.remove('show');
+            
+            if (gameState.currentQuestion >= gameState.totalQuestions) {
+                // 游戏结束
+                gameState.currentQuestion = 1;
+                gameState.questions = generateQuestions();
+                alert('恭喜你完成了所有题目！');
+            } else {
+                gameState.currentQuestion++;
+            }
+            
+            updateProgress();
+            loadQuestion();
+        }
+
+        // 创建粒子效果
+        function createParticles(x, y, color) {
+            const particlesContainer = document.getElementById('particles');
+            const particleCount = 12;
+            
+            for (let i = 0; i < particleCount; i++) {
+                const particle = document.createElement('div');
+                particle.className = 'particle';
+                particle.style.backgroundColor = color;
+                particle.style.left = x + 'px';
+                particle.style.top = y + 'px';
+                
+                const angle = (Math.PI * 2 * i) / particleCount;
+                const distance = 80 + Math.random() * 60;
+                const tx = Math.cos(angle) * distance;
+                const ty = Math.sin(angle) * distance;
+                
+                particle.style.setProperty('--tx', tx + 'px');
+                particle.style.setProperty('--ty', ty + 'px');
+                particle.style.animation = 'particle-fly 0.6s ease forwards';
+                
+                particlesContainer.appendChild(particle);
+                
+                setTimeout(() => {
+                    particle.remove();
+                }, 600);
+            }
+        }
+
+        // 角度归一化到 0-360 范围
+        function normalizeAngle(angle) {
+            angle = angle % 360;
+            return angle < 0 ? angle + 360 : angle;
+        }
+
+        // 更新指针 DOM 显示
+        function updateHandRotation(handId, angle) {
+            document.getElementById(handId).style.transform = `rotate(${angle}deg)`;
+        }
+
+        // 指针拖拽功能（带联动规则）
+        function setupDragHand(handId) {
+            const hand = document.getElementById(handId);
+            const clockFace = document.getElementById('clockFace');
+            
+            let isDragging = false;
+            let lastAngle = null;  // 记录上一帧角度用于计算 delta
+            
+            hand.addEventListener('mousedown', startDrag);
+            hand.addEventListener('touchstart', startDrag);
+            
+            function startDrag(e) {
+                isDragging = true;
+                lastAngle = null;  // 重置
+                document.addEventListener('mousemove', onDrag);
+                document.addEventListener('touchmove', onDrag);
+                document.addEventListener('mouseup', stopDrag);
+                document.addEventListener('touchend', stopDrag);
+                e.preventDefault();
+            }
+            
+            function onDrag(e) {
+                if (!isDragging) return;
+                
+                const rect = clockFace.getBoundingClientRect();
+                const centerX = rect.left + rect.width / 2;
+                const centerY = rect.top + rect.height / 2;
+                
+                const clientX = e.clientX || (e.touches && e.touches[0].clientX);
+                const clientY = e.clientY || (e.touches && e.touches[0].clientY);
+                
+                const dx = clientX - centerX;
+                const dy = clientY - centerY;
+                
+                // 计算当前拖动指针的角度
+                let currentAngle = Math.atan2(dy, dx) * (180 / Math.PI);
+                currentAngle = normalizeAngle(currentAngle + 90);
+                
+                // 计算角度变化量（delta）
+                if (lastAngle !== null) {
+                    let delta = currentAngle - lastAngle;
+                    
+                    // 处理跨越 0° 的情况
+                    if (delta > 180) delta -= 360;
+                    if (delta < -180) delta += 360;
+                    
+                    // 根据拖动的指针，联动其他指针
+                    applyLinkage(handId, delta);
+                }
+                
+                // 更新上一帧角度
+                lastAngle = currentAngle;
+                
+                // 直接设置当前指针角度（基于初始位置的变化）
+                const baseAngle = getBaseAngle(handId);
+                let newAngle = baseAngle;
+                if (lastAngle !== null) {
+                    // 计算相对于初始位置的新角度
+                    newAngle = normalizeAngle(baseAngle + calculateTotalDelta(handId));
+                }
+                
+                updateHandRotation(handId, newAngle);
+            }
+            
+            function stopDrag() {
+                isDragging = false;
+                lastAngle = null;
+                document.removeEventListener('mousemove', onDrag);
+                document.removeEventListener('touchmove', onDrag);
+                document.removeEventListener('mouseup', stopDrag);
+                document.removeEventListener('touchend', stopDrag);
+                
+                // 更新游戏状态中的时间
+                updateGameTimeFromAngles();
+            }
+        }
+
+        // 获取各指针的基准角度（用于计算相对位移）
+        const handBaseAngles = {
+            hourHand: 0,
+            minuteHand: 0,
+            secondHand: 0
+        };
+        
+        // 累计角度变化量
+        const handDelta = {
+            hourHand: 0,
+            minuteHand: 0,
+            secondHand: 0
+        };
+
+        // 获取指针基准角度（初始角度）
+        function getBaseAngle(handId) {
+            return handBaseAngles[handId];
+        }
+
+        // 计算某个指针的累计角度变化
+        function calculateTotalDelta(handId) {
+            return handDelta[handId] || 0;
+        }
+
+        // 应用联动规则
+        function applyLinkage(draggedHand, delta) {
+            // 更新被拖动指针的累计变化
+            handDelta[draggedHand] = (handDelta[draggedHand] || 0) + delta;
+            
+            // 联动规则：
+            // 1. 拖动时针 → 联动分针（5:1）
+            // 2. 拖动分针 → 联动时针（1:2）+ 秒针（1:60）
+            // 3. 拖动秒针 → 联动分针（60:1）
+            
+            if (draggedHand === 'hourHand') {
+                // 时针 → 分针（5:1）
+                handDelta.minuteHand = (handDelta.minuteHand || 0) + delta / 5;
+                updateHandRotation('minuteHand', normalizeAngle(handBaseAngles.minuteHand + handDelta.minuteHand));
+                
+            } else if (draggedHand === 'minuteHand') {
+                // 分针 → 时针（1:2）
+                handDelta.hourHand = (handDelta.hourHand || 0) + delta / 2;
+                updateHandRotation('hourHand', normalizeAngle(handBaseAngles.hourHand + handDelta.hourHand));
+                
+                // 分针 → 秒针（1:60）
+                handDelta.secondHand = (handDelta.secondHand || 0) + delta * 60;
+                updateHandRotation('secondHand', normalizeAngle(handBaseAngles.secondHand + handDelta.secondHand));
+                
+            } else if (draggedHand === 'secondHand') {
+                // 秒针 → 分针（60:1）
+                handDelta.minuteHand = (handDelta.minuteHand || 0) + delta / 60;
+                updateHandRotation('minuteHand', normalizeAngle(handBaseAngles.minuteHand + handDelta.minuteHand));
+            }
+        }
+
+        // 根据角度更新游戏时间状态
+        function updateGameTimeFromAngles() {
+            const hourAngle = normalizeAngle(handBaseAngles.hourHand + handDelta.hourHand);
+            const minuteAngle = normalizeAngle(handBaseAngles.minuteHand + handDelta.minuteHand);
+            const secondAngle = normalizeAngle(handBaseAngles.secondHand + handDelta.secondHand);
+            
+            gameState.currentTime.hour = Math.round(hourAngle / 30) || 12;
+            gameState.currentTime.minute = Math.round(minuteAngle / 6);
+            gameState.currentTime.second = Math.round(secondAngle / 6);
+        }
+
+        // 设置时钟指针位置（初始化）
+        function setClock(hour, minute, second) {
+            const hourAngle = (hour % 12) * 30 + minute * 0.5;
+            const minuteAngle = minute * 6 + second * 0.1;
+            const secondAngle = second * 6;
+            
+            // 设置基准角度
+            handBaseAngles.hourHand = hourAngle;
+            handBaseAngles.minuteHand = minuteAngle;
+            handBaseAngles.secondHand = secondAngle;
+            
+            // 重置累计变化
+            handDelta.hourHand = 0;
+            handDelta.minuteHand = 0;
+            handDelta.secondHand = 0;
+            
+            // 更新显示
+            updateHandRotation('hourHand', hourAngle);
+            updateHandRotation('minuteHand', minuteAngle);
+            updateHandRotation('secondHand', secondAngle);
+            
+            gameState.currentTime = { hour, minute, second };
+        }
+
+        // 初始化
+        window.addEventListener('load', () => {
+            initClock();
+            setupDragHand('hourHand');
+            setupDragHand('minuteHand');
+            setupDragHand('secondHand');
+            
+            // 设置输入框焦点和选中状态高亮
+            ['hourInput', 'minuteInput', 'secondInput'].forEach(id => {
+                document.getElementById(id).addEventListener('focus', function() {
+                    // 移除所有输入框的 selected 类
+                    document.querySelectorAll('.time-input').forEach(el => el.classList.remove('selected'));
+                    // 给当前输入框添加 selected 类
+                    this.classList.add('selected');
+                    gameState.selectedInput = this;
+                });
+            });
+
+            // 页面加载时默认选中第一个输入框
+            setTimeout(() => {
+                const firstInput = document.getElementById('hourInput');
+                if (firstInput) {
+                    document.querySelectorAll('.time-input').forEach(el => el.classList.remove('selected'));
+                    firstInput.classList.add('selected');
+                    gameState.selectedInput = firstInput;
+                }
+            }, 100);
+            
+            loadQuestion();
+        });
+    </script>
+</body>
+</html>
