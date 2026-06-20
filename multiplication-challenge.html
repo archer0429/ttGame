@@ -1,0 +1,1349 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>乘法挑战</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            /* 主色调 - 深紫色背景 */
+            --bg-start: #4A1A6B;
+            --bg-end: #2D1145;
+
+            /* 文字颜色 */
+            --text-white: #FFFFFF;
+            --text-light: #D7BDE2;
+            --text-accent: #F1C40F;
+
+            /* 成功/错误色 */
+            --success-color: #2ECC71;
+            --error-color: #E8364F;
+
+            /* 糖果色板（1-9数字颜色） */
+            --candy-red: #E8364F;      /* 1 */
+            --candy-orange: #F39C12;   /* 2 */
+            --candy-yellow: #F1C40F;  /* 3 */
+            --candy-green: #2ECC71;    /* 4 */
+            --candy-blue: #3498DB;     /* 5 */
+            --candy-purple: #9B59B6;   /* 6 */
+            --candy-pink: #E91E63;     /* 7 */
+            --candy-cyan: #00BCD4;     /* 8 */
+            --candy-brown: #795548;    /* 9 */
+        }
+
+        body {
+            min-height: 100vh;
+            background: linear-gradient(180deg, var(--bg-start) 0%, var(--bg-end) 100%);
+            font-family: 'Arial', 'Microsoft YaHei', 'PingFang SC', sans-serif;
+            display: flex;
+            flex-direction: column;
+            padding: 20px;
+            overflow-x: hidden;
+        }
+
+        /* 顶部标题栏 */
+        .header {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 20px;
+            position: relative;
+        }
+
+        .back-btn {
+            position: absolute;
+            left: 0;
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #AF7AC5 0%, #9B59B6 50%, #8E44AD 100%);
+            color: white;
+            font-size: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            border: none;
+            box-shadow: 0 4px 0 rgba(0,0,0,0.2), 0 6px 12px rgba(0,0,0,0.3);
+            transition: transform 0.1s ease;
+        }
+
+        .back-btn:active {
+            transform: translateY(2px);
+            box-shadow: 0 2px 0 rgba(0,0,0,0.2), 0 3px 6px rgba(0,0,0,0.3);
+        }
+
+        .page-title {
+            font-size: 28px;
+            font-weight: bold;
+            color: var(--text-white);
+            text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+        }
+
+        /* 模式切换按钮 */
+        .mode-switcher {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-bottom: 25px;
+            flex-wrap: wrap;
+        }
+
+        .mode-btn {
+            padding: 12px 20px;
+            border-radius: 20px;
+            font-size: 16px;
+            font-weight: bold;
+            color: var(--text-light);
+            background: linear-gradient(135deg, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0.05) 100%);
+            border: 2px solid rgba(255,255,255,0.2);
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .mode-btn.active {
+            color: var(--text-white);
+            background: linear-gradient(135deg, #58D68D 0%, #2ECC71 50%, #27AE60 100%);
+            border-color: transparent;
+            box-shadow: 0 4px 0 rgba(0,0,0,0.2), 0 6px 12px rgba(0,0,0,0.3);
+        }
+
+        .mode-btn:active {
+            transform: translateY(2px);
+        }
+
+        /* 游戏内容区域 */
+        .game-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        /* ========== 模式一：看一看 ========== */
+        .look-mode {
+            width: 100%;
+            max-width: 500px;
+        }
+
+        .multiplication-table {
+            background: rgba(255,255,255,0.1);
+            border-radius: 20px;
+            padding: 20px;
+            backdrop-filter: blur(10px);
+        }
+
+        .table-row {
+            display: flex;
+            justify-content: center;
+            gap: 8px;
+            margin-bottom: 8px;
+            flex-wrap: wrap;
+        }
+
+        .table-cell {
+            padding: 10px 12px;
+            border-radius: 12px;
+            font-size: 14px;
+            font-weight: bold;
+            color: white;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            min-width: 60px;
+            text-align: center;
+            box-shadow: 0 3px 0 rgba(0,0,0,0.2), 0 4px 8px rgba(0,0,0,0.2);
+        }
+
+        .table-cell:hover {
+            transform: scale(1.1);
+        }
+
+        .table-cell:active {
+            transform: scale(0.95);
+        }
+
+        .table-cell.mastered {
+            opacity: 0.5;
+        }
+
+        .table-hint {
+            text-align: center;
+            color: var(--text-light);
+            font-size: 14px;
+            margin-top: 20px;
+        }
+
+        /* 放大卡片弹窗 */
+        .zoom-card {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) scale(0);
+            background: white;
+            border-radius: 30px;
+            padding: 40px 60px;
+            text-align: center;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+            z-index: 1000;
+            transition: transform 0.3s ease;
+        }
+
+        .zoom-card.show {
+            transform: translate(-50%, -50%) scale(1);
+        }
+
+        .zoom-formula {
+            font-size: 48px;
+            font-weight: bold;
+            margin-bottom: 20px;
+        }
+
+        .zoom-number {
+            display: inline;
+        }
+
+        .zoom-equals {
+            color: #F1C40F;
+        }
+
+        .zoom-answer {
+            color: #3498DB;
+        }
+
+        .zoom-close {
+            color: var(--text-light);
+            font-size: 14px;
+            margin-top: 15px;
+        }
+
+        /* ========== 模式二/三：答题模式 ========== */
+        .answer-mode {
+            width: 100%;
+            max-width: 500px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        /* 进度显示 */
+        .progress-bar {
+            width: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .progress-text {
+            color: var(--text-white);
+            font-size: 18px;
+            font-weight: bold;
+        }
+
+        .stars {
+            display: flex;
+            gap: 5px;
+        }
+
+        .star {
+            font-size: 24px;
+            color: rgba(255,255,255,0.3);
+        }
+
+        .star.earned {
+            color: #F1C40F;
+        }
+
+        /* 关卡标题 */
+        .level-title {
+            color: var(--text-white);
+            font-size: 20px;
+            font-weight: bold;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        /* 题目卡片 */
+        .question-card {
+            background: rgba(255,255,255,0.95);
+            border-radius: 24px;
+            padding: 30px 50px;
+            margin-bottom: 30px;
+            box-shadow: 0 8px 0 rgba(0,0,0,0.1), 0 12px 20px rgba(0,0,0,0.2);
+        }
+
+        .formula {
+            font-size: 42px;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 15px;
+        }
+
+        .formula-num {
+            display: inline-block;
+        }
+
+        .formula-op {
+            color: #333;
+        }
+
+        .formula-equals {
+            color: #F1C40F;
+        }
+
+        .formula-question {
+            color: #9B59B6;
+            animation: bounce 1s ease infinite;
+        }
+
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-5px); }
+        }
+
+        /* 答案区域 */
+        .answer-area {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 30px;
+        }
+
+        .answer-box {
+            width: 70px;
+            height: 70px;
+            border: 4px solid rgba(255,255,255,0.3);
+            border-radius: 16px;
+            background: rgba(255,255,255,0.1);
+            font-size: 36px;
+            font-weight: bold;
+            color: var(--text-white);
+            text-align: center;
+            transition: all 0.2s ease;
+        }
+
+        .answer-box.focused {
+            border-color: var(--text-accent);
+            background: rgba(241, 196, 15, 0.2);
+            box-shadow: 0 0 20px rgba(241, 196, 15, 0.4);
+        }
+
+        .answer-box.correct {
+            border-color: var(--success-color);
+            background: rgba(46, 204, 113, 0.3);
+        }
+
+        .answer-box.wrong {
+            border-color: var(--error-color);
+            background: rgba(232, 54, 79, 0.3);
+            animation: shake 0.3s ease;
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-10px); }
+            75% { transform: translateX(10px); }
+        }
+
+        /* 数字键盘 */
+        .num-keypad {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .keypad-row {
+            display: flex;
+            gap: 10px;
+        }
+
+        .num-btn {
+            width: 60px;
+            height: 60px;
+            border-radius: 15px;
+            font-size: 24px;
+            font-weight: bold;
+            color: white;
+            border: none;
+            cursor: pointer;
+            box-shadow: 0 4px 0 rgba(0,0,0,0.2), 0 6px 12px rgba(0,0,0,0.2);
+            transition: all 0.1s ease;
+        }
+
+        .num-btn:active {
+            transform: translateY(3px);
+            box-shadow: 0 1px 0 rgba(0,0,0,0.2), 0 2px 6px rgba(0,0,0,0.2);
+        }
+
+        .num-btn.delete {
+            background: linear-gradient(135deg, #FF6B7A 0%, #E8364F 50%, #C0392B 100%);
+            width: 130px;
+        }
+
+        .num-btn.submit {
+            background: linear-gradient(135deg, #58D68D 0%, #2ECC71 50%, #27AE60 100%);
+            width: 130px;
+        }
+
+        /* 反馈信息 */
+        .feedback {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            padding: 20px 40px;
+            border-radius: 20px;
+            font-size: 28px;
+            font-weight: bold;
+            color: white;
+            z-index: 1000;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .feedback.show {
+            opacity: 1;
+        }
+
+        .feedback.success {
+            background: linear-gradient(135deg, #58D68D 0%, #2ECC71 100%);
+        }
+
+        .feedback.error {
+            background: linear-gradient(135deg, #FF6B7A 0%, #E8364F 100%);
+        }
+
+        /* 通关画面 */
+        .win-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.8);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 2000;
+        }
+
+        .win-card {
+            background: linear-gradient(135deg, #4A1A6B 0%, #2D1145 100%);
+            border-radius: 30px;
+            padding: 40px;
+            text-align: center;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+        }
+
+        .win-title {
+            font-size: 36px;
+            font-weight: bold;
+            color: #F1C40F;
+            margin-bottom: 20px;
+        }
+
+        .win-stars {
+            font-size: 48px;
+            margin-bottom: 20px;
+        }
+
+        .win-stats {
+            color: var(--text-white);
+            font-size: 18px;
+            margin-bottom: 30px;
+        }
+
+        .win-buttons {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+        }
+
+        .win-btn {
+            padding: 15px 30px;
+            border-radius: 20px;
+            font-size: 16px;
+            font-weight: bold;
+            color: white;
+            border: none;
+            cursor: pointer;
+            box-shadow: 0 4px 0 rgba(0,0,0,0.2), 0 6px 12px rgba(0,0,0,0.3);
+            transition: all 0.1s ease;
+        }
+
+        .win-btn:active {
+            transform: translateY(2px);
+        }
+
+        .win-btn.primary {
+            background: linear-gradient(135deg, #58D68D 0%, #2ECC71 50%, #27AE60 100%);
+        }
+
+        .win-btn.secondary {
+            background: linear-gradient(135deg, #AF7AC5 0%, #9B59B6 50%, #8E44AD 100%);
+        }
+
+        /* 遮罩层 */
+        .overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 999;
+            display: none;
+        }
+
+        .overlay.show {
+            display: block;
+        }
+
+        /* 粒子效果容器 */
+        .particles {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            overflow: hidden;
+            z-index: 1001;
+        }
+
+        .particle {
+            position: absolute;
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            pointer-events: none;
+        }
+
+        @keyframes particle-fly {
+            0% {
+                transform: translate(0, 0) scale(1);
+                opacity: 1;
+            }
+            100% {
+                transform: translate(var(--tx), var(--ty)) scale(0);
+                opacity: 0;
+            }
+        }
+
+        /* 隐藏 */
+        .hidden {
+            display: none !important;
+        }
+
+        /* 响应式 */
+        @media (max-width: 400px) {
+            .mode-btn {
+                padding: 10px 15px;
+                font-size: 14px;
+            }
+
+            .formula {
+                font-size: 32px;
+            }
+
+            .answer-box {
+                width: 55px;
+                height: 55px;
+                font-size: 28px;
+            }
+
+            .num-btn {
+                width: 50px;
+                height: 50px;
+                font-size: 20px;
+            }
+
+            .num-btn.delete,
+            .num-btn.submit {
+                width: 110px;
+            }
+
+            .question-card {
+                padding: 20px 30px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- 顶部标题栏 -->
+    <div class="header">
+        <button class="back-btn" id="backBtn">←</button>
+        <h1 class="page-title">乘法挑战</h1>
+    </div>
+
+    <!-- 模式切换按钮 -->
+    <div class="mode-switcher">
+        <button class="mode-btn active" data-mode="look">看一看</button>
+        <button class="mode-btn" data-mode="fill">填一填</button>
+        <button class="mode-btn" data-mode="challenge">闯一闯</button>
+    </div>
+
+    <!-- 游戏内容区域 -->
+    <div class="game-content">
+        <!-- ========== 模式一：看一看 ========== -->
+        <div class="look-mode" id="lookMode">
+            <div class="multiplication-table" id="multiplicationTable">
+                <!-- 由JS生成 -->
+            </div>
+            <p class="table-hint">★ 点击算式，放大查看并朗读 ★</p>
+        </div>
+
+        <!-- ========== 模式二：填一填 ========== -->
+        <div class="answer-mode hidden" id="fillMode">
+            <div class="progress-bar">
+                <span class="progress-text" id="fillProgress">第 1 / 10 题</span>
+            </div>
+
+            <div class="question-card">
+                <div class="formula" id="fillFormula">
+                    <!-- 由JS生成 -->
+                </div>
+            </div>
+
+            <div class="answer-area" id="fillAnswer">
+                <!-- 由JS生成 -->
+            </div>
+
+            <div class="num-keypad" id="fillKeypad">
+                <div class="keypad-row">
+                    <button class="num-btn" data-num="1">1</button>
+                    <button class="num-btn" data-num="2">2</button>
+                    <button class="num-btn" data-num="3">3</button>
+                    <button class="num-btn" data-num="4">4</button>
+                    <button class="num-btn" data-num="5">5</button>
+                </div>
+                <div class="keypad-row">
+                    <button class="num-btn" data-num="6">6</button>
+                    <button class="num-btn" data-num="7">7</button>
+                    <button class="num-btn" data-num="8">8</button>
+                    <button class="num-btn" data-num="9">9</button>
+                    <button class="num-btn" data-num="0">0</button>
+                </div>
+                <div class="keypad-row">
+                    <button class="num-btn delete" id="fillDelete">← 删除</button>
+                    <button class="num-btn submit" id="fillSubmit">✓ 确认</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- ========== 模式三：闯一闯 ========== -->
+        <div class="answer-mode hidden" id="challengeMode">
+            <div class="progress-bar">
+                <div class="stars" id="levelStars">
+                    <!-- 由JS生成 -->
+                </div>
+                <span class="progress-text" id="challengeProgress">进度：0 / 5</span>
+            </div>
+
+            <div class="level-title" id="levelTitle">第 1 关：小小学徒</div>
+
+            <div class="question-card">
+                <div class="formula" id="challengeFormula">
+                    <!-- 由JS生成 -->
+                </div>
+            </div>
+
+            <div class="answer-area" id="challengeAnswer">
+                <!-- 由JS生成 -->
+            </div>
+
+            <div class="num-keypad" id="challengeKeypad">
+                <div class="keypad-row">
+                    <button class="num-btn" data-num="1">1</button>
+                    <button class="num-btn" data-num="2">2</button>
+                    <button class="num-btn" data-num="3">3</button>
+                    <button class="num-btn" data-num="4">4</button>
+                    <button class="num-btn" data-num="5">5</button>
+                </div>
+                <div class="keypad-row">
+                    <button class="num-btn" data-num="6">6</button>
+                    <button class="num-btn" data-num="7">7</button>
+                    <button class="num-btn" data-num="8">8</button>
+                    <button class="num-btn" data-num="9">9</button>
+                    <button class="num-btn" data-num="0">0</button>
+                </div>
+                <div class="keypad-row">
+                    <button class="num-btn delete" id="challengeDelete">← 删除</button>
+                    <button class="num-btn submit" id="challengeSubmit">✓ 确认</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 放大卡片弹窗 -->
+    <div class="overlay" id="zoomOverlay"></div>
+    <div class="zoom-card" id="zoomCard">
+        <div class="zoom-formula" id="zoomFormula"></div>
+        <p class="zoom-close">点击任意处关闭</p>
+    </div>
+
+    <!-- 反馈信息 -->
+    <div class="feedback" id="feedback"></div>
+
+    <!-- 通关画面 -->
+    <div class="win-screen" id="winScreen">
+        <div class="win-card">
+            <div class="win-title" id="winTitle">🎉 通关成功！🎉</div>
+            <div class="win-stars" id="winStars">⭐⭐⭐</div>
+            <div class="win-stats" id="winStats">答对 5/5 题</div>
+            <div class="win-buttons">
+                <button class="win-btn primary" id="winNext">继续挑战</button>
+                <button class="win-btn secondary" id="winReplay">再玩一次</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 粒子效果容器 -->
+    <div class="particles" id="particles"></div>
+
+    <script>
+        // ============ 配置和数据 ============
+        const STORAGE_KEY = 'children_learning_game';
+
+        // 糖果色映射（1-9）
+        const candyColors = {
+            1: { bg: '#FF6B7A', text: '#E8364F' },
+            2: { bg: '#F8B739', text: '#F39C12' },
+            3: { bg: '#F9E79F', text: '#F1C40F' },
+            4: { bg: '#58D68D', text: '#2ECC71' },
+            5: { bg: '#5DADE2', text: '#3498DB' },
+            6: { bg: '#AF7AC5', text: '#9B59B6' },
+            7: { bg: '#F48FB1', text: '#E91E63' },
+            8: { bg: '#80DEEA', text: '#00BCD4' },
+            9: { bg: '#BCAAA4', text: '#795548' }
+        };
+
+        // 关卡配置
+        const levelConfig = [
+            { name: '小小学徒', range: [1, 1], stars: 1 },
+            { name: '初学乍练', range: [2, 2], stars: 2 },
+            { name: '小有所成', range: [3, 5], stars: 3 },
+            { name: '高手进阶', range: [6, 7], stars: 4 },
+            { name: '乘法大师', range: [8, 9], stars: 5 }
+        ];
+
+        // 游戏状态
+        let gameState = {
+            mode: 'look',           // 当前模式
+            masteredEquations: [],  // 已掌握的算式
+
+            // 填一填模式
+            fill: {
+                currentQuestion: null,
+                currentAnswer: '',
+                correctAnswer: '',
+                questionIndex: 0,
+                correctCount: 0,
+                totalQuestions: 10
+            },
+
+            // 闯一闯模式
+            challenge: {
+                currentLevel: 0,
+                currentQuestion: null,
+                currentAnswer: '',
+                correctAnswer: '',
+                questionIndex: 0,
+                correctInLevel: 0,
+                wrongCount: 0,
+                levelProgress: [0, 0, 0, 0, 0]  // 每关通关状态
+            }
+        };
+
+        // ============ DOM元素 ============
+        const backBtn = document.getElementById('backBtn');
+        const modeBtns = document.querySelectorAll('.mode-btn');
+        const lookMode = document.getElementById('lookMode');
+        const fillMode = document.getElementById('fillMode');
+        const challengeMode = document.getElementById('challengeMode');
+        const zoomOverlay = document.getElementById('zoomOverlay');
+        const zoomCard = document.getElementById('zoomCard');
+        const zoomFormula = document.getElementById('zoomFormula');
+        const feedback = document.getElementById('feedback');
+        const winScreen = document.getElementById('winScreen');
+        const particles = document.getElementById('particles');
+
+        // ============ 工具函数 ============
+        function random(min, max) {
+            return Math.floor(Math.random() * (max - min + 1)) + min;
+        }
+
+        function getCandyColor(num) {
+            const color = candyColors[num] || candyColors[5];
+            return `background: linear-gradient(135deg, ${color.bg} 0%, ${color.text} 100%);`;
+        }
+
+        function createParticles(x, y, colors) {
+            const particleCount = 12;
+            const colorList = colors || ['#FF6B7A', '#F8B739', '#F9E79F', '#58D68D', '#5DADE2', '#AF7AC5'];
+
+            for (let i = 0; i < particleCount; i++) {
+                const particle = document.createElement('div');
+                particle.className = 'particle';
+                particle.style.backgroundColor = colorList[i % colorList.length];
+                particle.style.left = x + 'px';
+                particle.style.top = y + 'px';
+
+                const angle = (Math.PI * 2 * i) / particleCount;
+                const distance = 80 + Math.random() * 60;
+                const tx = Math.cos(angle) * distance;
+                const ty = Math.sin(angle) * distance;
+
+                particle.style.setProperty('--tx', tx + 'px');
+                particle.style.setProperty('--ty', ty + 'px');
+                particle.style.animation = 'particle-fly 0.6s ease forwards';
+
+                particles.appendChild(particle);
+
+                setTimeout(() => particle.remove(), 600);
+            }
+        }
+
+        function showFeedback(message, type) {
+            feedback.textContent = message;
+            feedback.className = `feedback ${type} show`;
+            setTimeout(() => {
+                feedback.classList.remove('show');
+            }, 1000);
+        }
+
+        // ============ 模式切换 ============
+        function switchMode(mode) {
+            gameState.mode = mode;
+
+            modeBtns.forEach(btn => {
+                btn.classList.toggle('active', btn.dataset.mode === mode);
+            });
+
+            lookMode.classList.toggle('hidden', mode !== 'look');
+            fillMode.classList.toggle('hidden', mode !== 'fill');
+            challengeMode.classList.toggle('hidden', mode !== 'challenge');
+
+            if (mode === 'fill') {
+                initFillMode();
+            } else if (mode === 'challenge') {
+                initChallengeMode();
+            }
+        }
+
+        modeBtns.forEach(btn => {
+            btn.addEventListener('click', () => switchMode(btn.dataset.mode));
+        });
+
+        // ============ 模式一：看一看 ============
+        function initLookMode() {
+            const table = document.getElementById('multiplicationTable');
+            table.innerHTML = '';
+
+            for (let i = 1; i <= 9; i++) {
+                const row = document.createElement('div');
+                row.className = 'table-row';
+
+                for (let j = 1; j <= i; j++) {
+                    const cell = document.createElement('div');
+                    cell.className = 'table-cell';
+                    const answer = i * j;
+                    cell.textContent = `${i}×${j}=${answer}`;
+                    cell.style.cssText = getCandyColor(i);
+
+                    // 检查是否已掌握
+                    const eq = `${i}×${j}=${answer}`;
+                    if (gameState.masteredEquations.includes(eq)) {
+                        cell.classList.add('mastered');
+                    }
+
+                    cell.addEventListener('click', () => showZoomCard(i, j, answer));
+                    cell.addEventListener('contextmenu', (e) => {
+                        e.preventDefault();
+                        markAsMastered(cell, eq);
+                    });
+
+                    row.appendChild(cell);
+                }
+
+                table.appendChild(row);
+            }
+        }
+
+        function showZoomCard(a, b, answer) {
+            const eq = `${a}×${b}=${answer}`;
+            zoomFormula.innerHTML = `
+                <span class="zoom-number" style="color: ${candyColors[a].text}">${a}</span>
+                <span class="zoom-op" style="color: #333"> × </span>
+                <span class="zoom-number" style="color: ${candyColors[b].text}">${b}</span>
+                <span class="zoom-equals"> = </span>
+                <span class="zoom-answer">${answer}</span>
+            `;
+
+            zoomOverlay.classList.add('show');
+            zoomCard.classList.add('show');
+
+            // 播放音效（如果有）
+            if ('speechSynthesis' in window) {
+                setTimeout(() => {
+                    const utterance = new SpeechSynthesisUtterance(`${a} 乘以 ${b} 等于 ${answer}`);
+                    utterance.lang = 'zh-CN';
+                    speechSynthesis.speak(utterance);
+                }, 300);
+            }
+        }
+
+        function markAsMastered(cell, eq) {
+            if (!gameState.masteredEquations.includes(eq)) {
+                gameState.masteredEquations.push(eq);
+                cell.classList.add('mastered');
+                saveData();
+
+                const rect = cell.getBoundingClientRect();
+                createParticles(rect.left + rect.width/2, rect.top + rect.height/2);
+                showFeedback('记住了！', 'success');
+            }
+        }
+
+        function closeZoomCard() {
+            zoomOverlay.classList.remove('show');
+            zoomCard.classList.remove('show');
+        }
+
+        zoomOverlay.addEventListener('click', closeZoomCard);
+        zoomCard.addEventListener('click', closeZoomCard);
+
+        // ============ 模式二：填一填 ============
+        function initFillMode() {
+            gameState.fill = {
+                currentQuestion: null,
+                currentAnswer: '',
+                correctAnswer: '',
+                questionIndex: 0,
+                correctCount: 0,
+                totalQuestions: 10
+            };
+            generateFillQuestion();
+        }
+
+        function generateFillQuestion() {
+            const q = gameState.fill;
+            if (q.questionIndex >= q.totalQuestions) {
+                // 完成一轮
+                showFillComplete();
+                return;
+            }
+
+            // 随机生成题目（保证 a <= b）
+            const a = random(1, 9);
+            const b = random(1, 9);
+            const num1 = Math.min(a, b);
+            const num2 = Math.max(a, b);
+            const answer = num1 * num2;
+
+            q.currentQuestion = { a: num1, b: num2 };
+            q.correctAnswer = String(answer);
+            q.currentAnswer = '';
+            q.questionIndex++;
+
+            updateFillUI();
+        }
+
+        function updateFillUI() {
+            const q = gameState.fill;
+            const { a, b } = q.currentQuestion;
+
+            // 更新进度
+            document.getElementById('fillProgress').textContent =
+                `第 ${q.questionIndex} / ${q.totalQuestions} 题`;
+
+            // 更新题目
+            document.getElementById('fillFormula').innerHTML = `
+                <span class="formula-num" style="color: ${candyColors[a].text}">${a}</span>
+                <span class="formula-op"> × </span>
+                <span class="formula-num" style="color: ${candyColors[b].text}">${b}</span>
+                <span class="formula-op"> = </span>
+                <span class="formula-question">?</span>
+            `;
+
+            // 更新答案框
+            const answerDiv = document.getElementById('fillAnswer');
+            const answerLen = q.correctAnswer.length;
+            let html = '';
+
+            for (let i = 0; i < answerLen; i++) {
+                const digit = q.currentAnswer[i] || '';
+                html += `<div class="answer-box focused">${digit}</div>`;
+            }
+
+            answerDiv.innerHTML = html;
+        }
+
+        function handleFillInput(num) {
+            const q = gameState.fill;
+            if (q.currentAnswer.length < q.correctAnswer.length) {
+                q.currentAnswer += num;
+
+                // 自动提交两位数答案
+                if (q.currentAnswer.length >= q.correctAnswer.length) {
+                    setTimeout(() => checkFillAnswer(), 300);
+                }
+
+                updateFillUI();
+            }
+        }
+
+        function handleFillDelete() {
+            const q = gameState.fill;
+            if (q.currentAnswer.length > 0) {
+                q.currentAnswer = q.currentAnswer.slice(0, -1);
+                updateFillUI();
+            }
+        }
+
+        function checkFillAnswer() {
+            const q = gameState.fill;
+            const answerBoxes = document.querySelectorAll('#fillAnswer .answer-box');
+
+            if (q.currentAnswer === q.correctAnswer) {
+                // 正确
+                answerBoxes.forEach(box => box.classList.add('correct'));
+                q.correctCount++;
+                showFeedback('太棒了！', 'success');
+
+                const rect = document.getElementById('fillAnswer').getBoundingClientRect();
+                createParticles(rect.left + rect.width/2, rect.top + rect.height/2);
+
+                setTimeout(() => generateFillQuestion(), 1000);
+            } else {
+                // 错误
+                answerBoxes.forEach(box => box.classList.add('wrong'));
+                showFeedback('再想想~', 'error');
+
+                setTimeout(() => {
+                    q.currentAnswer = '';
+                    answerBoxes.forEach(box => box.classList.remove('wrong'));
+                    updateFillUI();
+                }, 1000);
+            }
+
+            saveData();
+        }
+
+        // 填一填键盘事件
+        document.querySelectorAll('#fillKeypad .num-btn[data-num]').forEach(btn => {
+            btn.addEventListener('click', () => handleFillInput(btn.dataset.num));
+        });
+        document.getElementById('fillDelete').addEventListener('click', handleFillDelete);
+        document.getElementById('fillSubmit').addEventListener('click', checkFillAnswer);
+
+        function showFillComplete() {
+            const q = gameState.fill;
+            document.getElementById('winTitle').textContent = '🎉 本轮完成！🎉';
+            document.getElementById('winStars').textContent = getStarsHTML(q.correctCount);
+            document.getElementById('winStats').textContent = `答对 ${q.correctCount}/${q.totalQuestions} 题`;
+
+            document.getElementById('winNext').textContent = '再来一次';
+            document.getElementById('winNext').onclick = () => {
+                winScreen.style.display = 'none';
+                initFillMode();
+            };
+
+            document.getElementById('winReplay').textContent = '切换模式';
+            document.getElementById('winReplay').onclick = () => {
+                winScreen.style.display = 'none';
+                switchMode('challenge');
+            };
+
+            winScreen.style.display = 'flex';
+        }
+
+        // ============ 模式三：闯一闯 ============
+        function initChallengeMode() {
+            // 从第一关或上次进度开始
+            const lastLevel = gameState.challenge.currentLevel;
+            gameState.challenge = {
+                ...gameState.challenge,
+                currentQuestion: null,
+                currentAnswer: '',
+                correctAnswer: '',
+                questionIndex: 0,
+                correctInLevel: 0,
+                wrongCount: 0
+            };
+            updateChallengeUI();
+            generateChallengeQuestion();
+        }
+
+        function updateChallengeUI() {
+            const c = gameState.challenge;
+            const level = levelConfig[c.currentLevel];
+
+            // 更新关卡标题
+            document.getElementById('levelTitle').textContent =
+                `第 ${c.currentLevel + 1} 关：${level.name}`;
+
+            // 更新星星
+            document.getElementById('levelStars').innerHTML = getStarsHTML(level.stars);
+
+            // 更新进度
+            document.getElementById('challengeProgress').textContent =
+                `进度：${c.correctInLevel} / 5`;
+        }
+
+        function getStarsHTML(count) {
+            let html = '';
+            for (let i = 0; i < 5; i++) {
+                html += `<span class="star ${i < count ? 'earned' : ''}">⭐</span>`;
+            }
+            return html;
+        }
+
+        function generateChallengeQuestion() {
+            const c = gameState.challenge;
+            const level = levelConfig[c.currentLevel];
+            const [min, max] = level.range;
+
+            // 生成题目（保证 a <= b）
+            const a = random(min, max);
+            const b = random(min, max);
+            const num1 = Math.min(a, b);
+            const num2 = Math.max(a, b);
+            const answer = num1 * num2;
+
+            c.currentQuestion = { a: num1, b: num2 };
+            c.correctAnswer = String(answer);
+            c.currentAnswer = '';
+            c.questionIndex++;
+
+            updateChallengeFormula();
+        }
+
+        function updateChallengeFormula() {
+            const c = gameState.challenge;
+            const { a, b } = c.currentQuestion;
+
+            // 更新题目
+            document.getElementById('challengeFormula').innerHTML = `
+                <span class="formula-num" style="color: ${candyColors[a].text}">${a}</span>
+                <span class="formula-op"> × </span>
+                <span class="formula-num" style="color: ${candyColors[b].text}">${b}</span>
+                <span class="formula-op"> = </span>
+                <span class="formula-question">?</span>
+            `;
+
+            // 更新答案框
+            const answerDiv = document.getElementById('challengeAnswer');
+            const answerLen = c.correctAnswer.length;
+            let html = '';
+
+            for (let i = 0; i < answerLen; i++) {
+                const digit = c.currentAnswer[i] || '';
+                html += `<div class="answer-box focused">${digit}</div>`;
+            }
+
+            answerDiv.innerHTML = html;
+        }
+
+        function handleChallengeInput(num) {
+            const c = gameState.challenge;
+            if (c.currentAnswer.length < c.correctAnswer.length) {
+                c.currentAnswer += num;
+
+                // 自动提交两位数答案
+                if (c.currentAnswer.length >= c.correctAnswer.length) {
+                    setTimeout(() => checkChallengeAnswer(), 300);
+                }
+
+                updateChallengeFormula();
+            }
+        }
+
+        function handleChallengeDelete() {
+            const c = gameState.challenge;
+            if (c.currentAnswer.length > 0) {
+                c.currentAnswer = c.currentAnswer.slice(0, -1);
+                updateChallengeFormula();
+            }
+        }
+
+        function checkChallengeAnswer() {
+            const c = gameState.challenge;
+            const answerBoxes = document.querySelectorAll('#challengeAnswer .answer-box');
+
+            if (c.currentAnswer === c.correctAnswer) {
+                // 正确
+                answerBoxes.forEach(box => box.classList.add('correct'));
+                c.correctInLevel++;
+                c.wrongCount = 0;
+                showFeedback('正确！', 'success');
+
+                const rect = document.getElementById('challengeAnswer').getBoundingClientRect();
+                createParticles(rect.left + rect.width/2, rect.top + rect.height/2);
+
+                updateChallengeUI();
+
+                // 检查是否通关
+                if (c.correctInLevel >= 5) {
+                    setTimeout(() => showLevelComplete(), 1200);
+                } else {
+                    setTimeout(() => generateChallengeQuestion(), 1000);
+                }
+            } else {
+                // 错误
+                answerBoxes.forEach(box => box.classList.add('wrong'));
+                c.wrongCount++;
+                showFeedback('再想想~', 'error');
+
+                setTimeout(() => {
+                    c.currentAnswer = '';
+                    answerBoxes.forEach(box => box.classList.remove('wrong'));
+
+                    // 如果连续错误2次，显示答案并下一题
+                    if (c.wrongCount >= 2) {
+                        c.currentAnswer = c.correctAnswer;
+                        updateChallengeFormula();
+                        setTimeout(() => {
+                            c.correctInLevel++;
+                            c.wrongCount = 0;
+                            updateChallengeUI();
+                            if (c.correctInLevel >= 5) {
+                                showLevelComplete();
+                            } else {
+                                generateChallengeQuestion();
+                            }
+                        }, 1500);
+                    } else {
+                        updateChallengeFormula();
+                    }
+                }, 1000);
+            }
+
+            saveData();
+        }
+
+        // 闯关键盘事件
+        document.querySelectorAll('#challengeKeypad .num-btn[data-num]').forEach(btn => {
+            btn.addEventListener('click', () => handleChallengeInput(btn.dataset.num));
+        });
+        document.getElementById('challengeDelete').addEventListener('click', handleChallengeDelete);
+        document.getElementById('challengeSubmit').addEventListener('click', checkChallengeAnswer);
+
+        function showLevelComplete() {
+            const c = gameState.challenge;
+            const level = levelConfig[c.currentLevel];
+
+            document.getElementById('winTitle').textContent = '🎉 通关成功！🎉';
+            document.getElementById('winStars').innerHTML = '⭐'.repeat(level.stars);
+            document.getElementById('winStats').textContent = `第 ${c.currentLevel + 1} 关完成！`;
+
+            // 标记关卡通关
+            gameState.challenge.levelProgress[c.currentLevel] = 1;
+
+            // 显示下一关或全部完成
+            if (c.currentLevel < levelConfig.length - 1) {
+                document.getElementById('winNext').textContent = '下一关';
+                document.getElementById('winNext').onclick = () => {
+                    winScreen.style.display = 'none';
+                    c.currentLevel++;
+                    c.correctInLevel = 0;
+                    updateChallengeUI();
+                    generateChallengeQuestion();
+                };
+            } else {
+                document.getElementById('winNext').textContent = '全部通关！';
+                document.getElementById('winNext').onclick = () => {
+                    winScreen.style.display = 'none';
+                    showAllComplete();
+                };
+            }
+
+            document.getElementById('winReplay').textContent = '重玩本关';
+            document.getElementById('winReplay').onclick = () => {
+                winScreen.style.display = 'none';
+                c.correctInLevel = 0;
+                updateChallengeUI();
+                generateChallengeQuestion();
+            };
+
+            winScreen.style.display = 'flex';
+
+            // 通关粒子效果
+            const rect = winScreen.getBoundingClientRect();
+            createParticles(rect.width/2, rect.height/2,
+                ['#F1C40F', '#FF6B7A', '#58D68D', '#5DADE2', '#AF7AC5']);
+
+            saveData();
+        }
+
+        function showAllComplete() {
+            document.getElementById('winTitle').textContent = '🏆 乘法大师！🏆';
+            document.getElementById('winStars').innerHTML = '⭐'.repeat(15);
+            document.getElementById('winStats').textContent = '恭喜你已完成所有关卡！';
+
+            document.getElementById('winNext').textContent = '再玩一次';
+            document.getElementById('winNext').onclick = () => {
+                winScreen.style.display = 'none';
+                gameState.challenge.currentLevel = 0;
+                gameState.challenge.correctInLevel = 0;
+                gameState.challenge.levelProgress = [0, 0, 0, 0, 0];
+                updateChallengeUI();
+                generateChallengeQuestion();
+            };
+
+            document.getElementById('winReplay').textContent = '返回主页';
+            document.getElementById('winReplay').onclick = () => {
+                window.location.href = 'index.html';
+            };
+
+            winScreen.style.display = 'flex';
+        }
+
+        // ============ 数据存储 ============
+        function saveData() {
+            try {
+                let data = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}');
+                if (!data.multiplicationChallenge) {
+                    data.multiplicationChallenge = {};
+                }
+                data.multiplicationChallenge.masteredEquations = gameState.masteredEquations;
+                data.multiplicationChallenge.levelProgress = gameState.challenge.levelProgress;
+                localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+            } catch (e) {
+                console.warn('存储数据失败:', e);
+            }
+        }
+
+        function loadData() {
+            try {
+                const data = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}');
+                if (data.multiplicationChallenge) {
+                    gameState.masteredEquations = data.multiplicationChallenge.masteredEquations || [];
+                    gameState.challenge.levelProgress = data.multiplicationChallenge.levelProgress || [0, 0, 0, 0, 0];
+                }
+            } catch (e) {
+                console.warn('读取数据失败:', e);
+            }
+        }
+
+        // ============ 初始化 ============
+        backBtn.addEventListener('click', () => {
+            window.location.href = 'index.html';
+        });
+
+        loadData();
+        initLookMode();
+    </script>
+</body>
+</html>

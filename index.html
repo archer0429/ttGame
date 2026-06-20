@@ -334,12 +334,12 @@
             <span class="card-status">可玩</span>
         </div>
 
-        <!-- 更多游戏（敬请期待） -->
-        <div class="game-card blue coming-soon">
-            <div class="card-icon">❓</div>
-            <h3 class="card-title">更多游戏</h3>
-            <p class="card-desc">精彩内容即将上线</p>
-            <span class="card-status">筹备中</span>
+        <!-- 乘法挑战卡片 -->
+        <div class="game-card orange" data-game="multiplication-challenge">
+            <div class="card-icon">✖️</div>
+            <h3 class="card-title">乘法挑战</h3>
+            <p class="card-desc">九九乘法表，轻松掌握！</p>
+            <span class="card-status">可玩</span>
         </div>
 
         <!-- 更多游戏（敬请期待） -->
@@ -428,6 +428,8 @@
                 setTimeout(() => {
                     if (gameId === 'clock-challenge') {
                         window.location.href = 'clock-challenge.html';
+                    } else if (gameId === 'multiplication-challenge') {
+                        window.location.href = 'multiplication-challenge.html';
                     }
                 }, 300);
             });
